@@ -4,8 +4,8 @@ from collections import defaultdict
 from hashlib import md5
 import json
 
-DB_IN = "data/tennis_abstract_new_version_testing.db"  
-DB_OUT = "data/tennis_abstract_new_version_merged_testing.db" 
+DB_IN = "tennis_abstract_new_version_testing.db"  
+DB_OUT = "tennis_abstract_new_version_merged_testing.db" 
 
 EXCLUDE_TABLES = {"tables_index", "sqlite_sequence"}
 

@@ -22,7 +22,7 @@ from selenium.webdriver.support import expected_conditions as EC
 # =========================
 # CONFIG
 # =========================
-DB_PATH = "data/tennis_abstract_new_version_testing.db"
+DB_PATH = "tennis_abstract_new_version_testing.db"
 BASE_CLASSIC = "https://www.tennisabstract.com/cgi-bin/player.cgi?p={player}"
 PAGE_LOAD_TIMEOUT = 25
 SLEEP_AFTER_LOAD = 0.8
@@ -216,7 +216,7 @@ def scrape_players_to_sqlite(
 if __name__ == "__main__":
     
     players = []
-    with open("data/top20.txt") as file:
+    with open("top200.txt") as file:
         for line in file:
              players.append(line)
     PLAYERS  = players
