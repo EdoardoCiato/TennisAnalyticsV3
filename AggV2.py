@@ -9,10 +9,10 @@ import pandas as pd
 from scipy.stats import percentileofscore
 
 BASE_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = BASE_DIR.parent
+PROJECT_ROOT = BASE_DIR
 INPUT_DB = BASE_DIR / "aggressiveness_coeff.db"
-RAW_DB = PROJECT_ROOT / "scrapers" / "tennis_abstract_new_version_riccardo.db"
-MERGED_DB = PROJECT_ROOT / "tennis_abstract_merged.db"
+RAW_DB = PROJECT_ROOT / "tennis_abstract_new_version.db"
+MERGED_DB = PROJECT_ROOT / "tennis_abstract_new_version_merged.db"
 OUTPUT_DB = BASE_DIR / "aggressiveness_v2.db"
 OUTPUT_TABLE = "aggressiveness_index"
 RALLY_WIN_COLS = ["1-3_W%", "4-6_W%", "7-9_W%", "10+_W%"]
