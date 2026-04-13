@@ -4,7 +4,7 @@ import sqlite3
 conn = sqlite3.connect('tennis_abstract_new_version_merged_testing.db')
 cursor = conn.cursor()
 
-# cursor.execute(''' DROP TABLE "reference_table"''')
+#cursor.execute(''' DROP TABLE "reference_table"''')
 
 cursor.execute(''' \
    CREATE TABLE IF NOT EXISTS "reference_table" ( \
@@ -12,9 +12,9 @@ cursor.execute(''' \
    parity INTEGER, \
    Description TEXT, \
    Topic TEXT, \
-   Efficiency BIT, \
+   Efficiency INTEGER, \
    Table_position INTEGER, \
-   in_chart BIT, \
+   in_chart INTEGER, \
    reference_table TEXT, \
    filter_date TEXT,
    JS TEXT
