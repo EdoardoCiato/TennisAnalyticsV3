@@ -32,6 +32,13 @@ def extract_indicator(indicator, player, reference_group, filter_date, cursor):
         cursor.execute(query, (player.strip(),  "%Career%"))
         row = cursor.fetchone()
         value = row[0] if row is not None else "NA"
+
+        if value not in [None, 'NA', '-']:
+            if isinstance(value, str) and '%' in value:
+                value = float(value.replace('%', ''))
+            else:
+                value = float(value)
+
         return value
     
 def name_handling_JS(player):
@@ -71,7 +78,7 @@ def data_aggregation_JS(indicator, player, reference_group, cursor):
     else:
         value = round(num/(len(rows)), 1)
 
-    return str(value)+'%'
+    return (value)
 
 def insert_row_into_general_table(row_data, cursor):
     values = list(row_data.values())
@@ -116,17 +123,12 @@ def pull_range_players(position, i, players, indicator, raw_table):
             if row:
                 value = row.get(indicator)
                 if value not in [None, 'NA', '-']:
-                        if '%' in str(value):
-                            clean_val = float(value.replace('%',''))
-                            percentage = True
-                        else:
-                            clean_val = value
-                            percentage = False
-                        values.append(clean_val)
+                    values.append(value)
 
         return values, percentage
 def handling_NA( player, indicator, players, raw_table):
     # getting the ranking of a player
+    imputed_val = 0
     position_map = {player: i for i, player in enumerate(players)}
     position = position_map[player]
     for i in range(20,61,10):
@@ -135,8 +137,8 @@ def handling_NA( player, indicator, players, raw_table):
         if len(values) >= 30:
             # calculate and return the median
             imputed_val =  (round(statistics.median(values), 1))
-            if percentage:
-                imputed_val = str(imputed_val)+'%'
+            # if percentage:
+            #     imputed_val = str(imputed_val)+'%'
             break
 
     return imputed_val
@@ -167,7 +169,7 @@ def main ():
             indicator = r['indicator']
             filter_date = r['filter_date']
             reference_group = r['reference_group']
-            if r['js'] == "Y":
+            if r['js'] == 1:
                 # adapting to use jeff sackmann
                 name = name_handling_JS(player)
                 value = data_aggregation_JS(indicator, name, reference_group, cursor)
