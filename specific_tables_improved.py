@@ -1,12 +1,13 @@
 import pandas as pd
 import sqlite3
+from adjusted_metrics import min_max_scaling, compute_delta, apply_parity
 
 def load_reference_table(cursor):
     cursor.execute('SELECT * FROM reference_table')
     raw_rows = cursor.fetchall()
     rows = []
     for r in raw_rows:
-        rows.append({"indicator": r[0], "column_name": r[2], "topic": r[3], "efficiency": r[4], 'in_chart': r[6]})
+        rows.append({"indicator": r[0], "parity": r[1], "column_name": r[2], "topic": r[3], "efficiency": r[4], 'in_chart': r[6], "is_ratio": r[10]})
     return rows
 
 def table_exists(cur, name):
@@ -54,10 +55,23 @@ def pull_table_values(cursor, indicators, players):
     avg_row = pull_average_values(cursor, indicators)
     all_rows = avg_row + players_rows
     df = pd.DataFrame(data = all_rows, columns = indicators)
-    df = df.transpose()
+    df = df.set_index('player_name').T
+    df.index.name = 'indicator'
+    df.columns.name = 'player'
     return df
 
-    # check if it makes more sense to upload the table directly here or if i should do it in another function
+def delta_col_and_sorting( df, parity_dict, cursor, players ):
+    df_scaled = df.copy()
+    df_scaled = min_max_scaling(cursor, players)
+    df_scaled = apply_parity(df_scaled, parity_dict)
+    df_scaled['Delta'] = compute_delta(df_scaled, players)
+
+    df_scaled = df_scaled.sort_values(by = 'Delta', key = abs, ascending = False)
+
+    return df_scaled
+
+def pull_top3_indicators_for_report():
+    pass
 
 def main():
     conn = sqlite3.connect('tennis_abstract_new_version_merged_testing.db')
@@ -84,5 +98,10 @@ def main():
     for table_type, category_dict in configs.items():
         for label, indicators in category_dict.items():
             tables[(label, table_type)] =  pull_table_values(cursor, indicators, players)
-    print(tables)
+    parity_dict = {row['column_name']: {"parity": row['parity'], "is_ratio": row['is_ratio'] }for row in rows} 
+    for dfs in tables.values():
+        print(delta_col_and_sorting(dfs, parity_dict, cursor, players))
+
+    
+
 main()
