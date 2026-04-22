@@ -1,5 +1,5 @@
 import pandas as pd
-def min_max_scaling( cursor, players):
+def min_max_scaling( cursor, players, df):
     cursor.execute('SELECT * FROM GENERAL')
     all_rows = cursor.fetchall()
     full_df = pd.DataFrame(data=all_rows, columns=[desc[0] for desc in cursor.description])
@@ -7,8 +7,9 @@ def min_max_scaling( cursor, players):
     scaled_full_df = (full_df - full_df.min()) / (full_df.max() - full_df.min())
     selected_players =  players
     scaled_report_df = scaled_full_df.loc[selected_players].T
-
-    return scaled_report_df
+    indicators_of_category = list(df.index)
+    scaled_category_report = scaled_report_df.loc[indicators_of_category]
+    return scaled_category_report
 
 def apply_parity(df, parity_dict):
     for indicator in df.index:

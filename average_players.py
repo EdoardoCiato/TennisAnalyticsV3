@@ -46,7 +46,7 @@ with sqlite3.connect(DB_PATH) as conn:
     # Tutte colonne TEXT (formato report)
     for c in cols:
         if c != "player_name":
-            cur.execute(f'ALTER TABLE "global_averages" ADD COLUMN "{c}" TEXT')
+            cur.execute(f'ALTER TABLE "global_averages" ADD COLUMN "{c}" NUMERIC')
 
     values = {"player_name": "ATP average"}
 
@@ -64,7 +64,7 @@ with sqlite3.connect(DB_PATH) as conn:
         else:
             if percent:
                 # Percentuali → 1 decimale + simbolo %
-                values[c] = f"{round(value, 1)}%"
+                values[c] = f"{round(value, 1)}"
             else:
                 # Altri numeri → 2 decimali
                 values[c] = f"{round(value, 2)}"
