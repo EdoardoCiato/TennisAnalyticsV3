@@ -35,17 +35,11 @@ def format(df, rows):
     df_format = df.copy().T
     for col_name in df_format.columns:
         if is_ratio(col_name, rows):
-            df_format[col_name] = df_format[col_name].apply(lambda value: turn_ratio(value))
+            df_format[col_name] = df_format[col_name].apply(lambda value:str(value)+'%')
 
 
     return df_format.T
-
-def turn_ratio(value):
-    if value >= -1 and value <= 1:
-        return str(round(value *100,1))+'%'
-    else:
-        return str(value)+'%'
-
+       
 def is_ratio(col, rows):
     for ind_dict in rows:
         if ind_dict['column_name'] == col and ind_dict['is_ratio'] == 1:
