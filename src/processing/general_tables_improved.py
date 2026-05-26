@@ -1,7 +1,12 @@
+
+from __future__ import annotations
+
 import sqlite3
 import re
 import statistics
 import copy
+
+# TODO: transform speed from mp/h to km/h 
 
 def create_table(cursor, conn):
     # get info on indicators from reference table
@@ -9,14 +14,22 @@ def create_table(cursor, conn):
     raw_rows = cursor.fetchall()
     code_create_table = f'''
         CREATE TABLE IF NOT EXISTS "general" (
+        "ranking" NUMERIC,
         "player_name" TEXT PRIMARY KEY,
         '''
     rows = []
     for r in raw_rows:
-        code_create_table += '"' + f'{str(r[2]).strip().replace('(','').replace(')','').replace(',','').replace("'", '"')}' + '"'+ ' NUMERIC ,\n '  
+        column_name = (
+            str(r[2])
+            .strip()
+            .replace('(', '')
+            .replace(')', '')
+            .replace(',', '')
+            .replace("'", '"')
+        )
+        code_create_table += f'"{column_name}" NUMERIC,\n'
         rows.append({"indicator": r[0], "column_name": r[2], "reference_group": r[7], "filter_date": r[8],"js": r[9]})
-    code_create_table = code_create_table[:-3]
-    code_create_table += ")"
+    code_create_table += '"matches_analyzed" NUMERIC)'
     cursor.execute(code_create_table)
     conn.commit()
     return rows
@@ -79,6 +92,15 @@ def data_aggregation_JS(indicator, player, reference_group, cursor):
         value = round(num/(len(rows)), 1)
 
     return (value)
+
+def extract_games_analyzed(cursor, player):
+    query = 'SELECT "Match" FROM group_015 WHERE "__player__" = ? AND MATCH LIKE ? '
+    cursor.execute(query, (player.strip(),  "%Career%"))
+    row = cursor.fetchone()
+    if row is None or row[0] is None:
+        return None
+    match = re.search(r'\d+', str(row[0]))
+    return int(match.group()) if match else None
 
 def insert_row_into_general_table(row_data, cursor):
     values = list(row_data.values())
@@ -160,9 +182,10 @@ def main ():
     missing_data = {}
     missing_info = []
     raw_table = {}
+    i = 1
     for player in PLAYERS:
         player = player.strip()
-        row_data = { "player_name": player}
+        row_data = { "ranking": i, "player_name": player}
         # rows contains info about indicators, so for each player we get the info for that 
         # indicator and find the associated value
         for r in rows:
@@ -183,6 +206,8 @@ def main ():
         if missing_info:
             missing_data[player] = missing_info
         missing_info = []
+        i += 1
+        row_data['matches_analyzed'] = extract_games_analyzed(cursor, player)
         raw_table[player] = row_data
     # creating a copy to leave the original untouched
     imputed_table = copy.deepcopy(raw_table)

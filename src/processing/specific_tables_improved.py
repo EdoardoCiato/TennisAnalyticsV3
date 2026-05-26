@@ -1,7 +1,7 @@
 import pandas as pd
 import sqlite3
-from adjusted_metrics import min_max_scaling, compute_delta, apply_parity
-from export_excel import export_tables_by_category
+from src.processing.adjusted_metrics import min_max_scaling, compute_delta, apply_parity
+from src.export.export_excel import export_tables_by_category
 
 def load_reference_table(cursor):
     # selecting all the indicators from the reference tables
@@ -95,7 +95,7 @@ def main():
     rows = (load_reference_table(cursor))
 
     categories_label = ['Serve', 'Return', 'Rally', 'Attitude', 'Tactics', 'Efficiency']
-    players = [ 'DusanLajovic', 'LorenzoSonego']
+    players = [ 'TommyPaul', 'LorenzoSonego']
 
     configs = {
         'chart':  create_category_dictionary(rows, categories_label),
@@ -118,6 +118,6 @@ def main():
 
     tables.update(scaled_tables)
 
-    export_tables_by_category(tables, rows, 'tables_sonego_lajovic.xlsx')
+    export_tables_by_category(tables, rows, 'tables_sonego_paul.xlsx')
 
 main()
