@@ -14,7 +14,7 @@ def export_tables_by_category(tables, rows, output_file="tables.xlsx", ):
 
             startcol = sheet_positions[category]
             if table_type != 'scaled':
-                table = format(table, rows)
+                table = format_ratios_for_excel(table, rows)
             table.to_excel(
                 writer,
                 sheet_name=category,
@@ -31,7 +31,7 @@ def export_tables_by_category(tables, rows, output_file="tables.xlsx", ):
             # move to the right for next table in same sheet
             sheet_positions[category] += len(table.columns) + 2
 
-def format(df, rows):
+def format_ratios_for_excel(df, rows):
     df_format = df.copy().T
     for col_name in df_format.columns:
         if is_ratio(col_name, rows):
