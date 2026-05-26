@@ -1,7 +1,7 @@
 import pandas as pd
 import sqlite3
-from src.processing.adjusted_metrics import min_max_scaling, compute_delta, apply_parity
-from src.export.export_excel import export_tables_by_category
+from src.processing.metric_scaling import min_max_scaling, compute_delta, apply_parity
+from src.export.excel_exporter import export_tables_by_category
 
 def load_reference_table(cursor):
     # selecting all the indicators from the reference tables
