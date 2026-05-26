@@ -1,6 +1,5 @@
 
 import pandas as pd
-import os
 def export_tables_by_category(tables, rows, output_file="tables.xlsx", ):
     sheet_positions = {}
 

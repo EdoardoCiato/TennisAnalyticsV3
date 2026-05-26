@@ -82,7 +82,7 @@ def delta_col_and_sorting( df, parity_dict, cursor, players ):
     return df_scaled, most_relevant_indicators
 
 def main():
-    conn = sqlite3.connect('tennis_abstract_new_version_merged_testing.db')
+    conn = sqlite3.connect('data/db/tennis_abstract_new_version_merged_testing.db')
     cursor = conn.cursor()
 
     if not table_exists(cursor, "reference_table"):
@@ -96,6 +96,8 @@ def main():
 
     categories_label = ['Serve', 'Return', 'Rally', 'Attitude', 'Tactics', 'Efficiency']
     players = [ 'TommyPaul', 'LorenzoSonego']
+    player1 = players[1]
+    player2 = players[0]
 
     configs = {
         'chart':  create_category_dictionary(rows, categories_label),
@@ -118,6 +120,6 @@ def main():
 
     tables.update(scaled_tables)
 
-    export_tables_by_category(tables, rows, 'tables_sonego_paul.xlsx')
+    export_tables_by_category(tables, rows, f'outputs/excel/tables_{player1}_{player2}.xlsx')
 
 main()

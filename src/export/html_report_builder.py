@@ -37,30 +37,15 @@ def generate_report(data):
 
     return template.render(data)
 
-
-
 def main():
-    conn = sqlite3.connect("tennis_abstract_new_version_merged_testing.db")
+    conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     data = (inject_overview([ "MatteoArnaldi", 'LorenzoSonego'], cursor))
     data["comments"] = {}
     data['overview'] = {}
     html = generate_report(data)
-    with open ('overview_templateV1.html', 'w') as f:
+    with open ('outputs/html/overview_templateV2.html', 'w') as f:
         f.write(html)
-
-
-# data = {
-#     "players": {
-#         "player1": "Lorenzo Sonego",
-#         "player2": "Mariano Navone"
-#     },
-
-#     "serve": [
-#         {"label": "Indice Servizio", "p1": 58.1, "p2": 24.1, "delta": "+34.0"},
-#         {"label": "Efficienza", "p1": 56.8, "p2": 43.6, "delta": "+13.2"}
-#     ],
-# }
 
 main()

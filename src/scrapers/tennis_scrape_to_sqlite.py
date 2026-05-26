@@ -22,7 +22,7 @@ from selenium.webdriver.support import expected_conditions as EC
 # =========================
 # CONFIG
 # =========================
-DB_PATH = "tennis_abstract_new_version_testing.db"
+DB_PATH = "data/db/tennis_abstract_new_version.db"
 BASE_CLASSIC = "https://www.tennisabstract.com/cgi-bin/player.cgi?p={player}"
 PAGE_LOAD_TIMEOUT = 25
 SLEEP_AFTER_LOAD = 0.8

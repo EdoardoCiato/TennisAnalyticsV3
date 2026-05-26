@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_PATH = "tennis_abstract_new_version_merged_testing.db"
+DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
 
 def is_percent_column(cursor, table, col):
     """

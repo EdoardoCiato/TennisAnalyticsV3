@@ -15,10 +15,7 @@ import pandas as pd
 # =========================
 # CONFIG
 # =========================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # ROOT
-
-# ✅ DB in scrapers/ — stesso di tennis_scrape_to_sqlite.py
-DB_PATH = os.path.join(BASE_DIR, "tennis_abstract_new_version_merged_testing.db")
+DB_PATH = 'data/db/tennis_abstract_new_version_merged.db'
 
 REPO_RAW_BASE = "https://raw.githubusercontent.com/JeffSackmann/tennis_MatchChartingProject/master/"
 

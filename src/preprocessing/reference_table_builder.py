@@ -1,7 +1,7 @@
 import pandas as pd
 import sqlite3
 
-conn = sqlite3.connect('tennis_abstract_new_version_merged_testing.db')
+conn = sqlite3.connect('data/db/tennis_abstract_new_version_merged_testing.db')
 cursor = conn.cursor()
 
 cursor.execute(''' DROP TABLE "reference_table"''')
@@ -22,7 +22,7 @@ cursor.execute(''' \
    )''')
 
 
-ref_table = pd.read_excel('Reference_Table.xlsx',  header = 1, usecols = 'A:K', dtype = 'object')
+ref_table = pd.read_excel('data/raw/Reference_Table.xlsx',  header = 1, usecols = 'A:K', dtype = 'object')
 for i, row in ref_table.iterrows():
     placeholders = ', '.join(map(str, row.to_list()))
     placeholders = ", ".join(f"'{word.strip()}'" for word in placeholders.split(','))

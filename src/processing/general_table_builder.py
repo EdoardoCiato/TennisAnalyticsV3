@@ -166,7 +166,7 @@ def handling_NA( player, indicator, players, raw_table):
     return imputed_val
 
 def main ():
-    conn = sqlite3.connect("tennis_abstract_new_version_merged_testing.db")
+    conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
     cursor = conn.cursor()
 
     cursor.execute('''
@@ -175,7 +175,7 @@ def main ():
 
     rows = create_table(cursor, conn)
     players = []
-    with open("top200.txt") as file:
+    with open("data/raw/top200.txt") as file:
             for line in file:
                 players.append(line.strip())
     PLAYERS  = players
