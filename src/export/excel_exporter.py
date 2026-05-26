@@ -25,7 +25,6 @@ def export_tables_by_category(tables, rows, output_file="tables.xlsx", ):
 
             # optional title above the table
             worksheet = writer.sheets[category]
-            worksheet
             worksheet.write(0, startcol + 1, table_type)
 
             # move to the right for next table in same sheet
