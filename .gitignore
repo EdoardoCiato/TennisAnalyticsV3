@@ -8,6 +8,9 @@ outputs/html/
 # Temporary Excel files
 ~$*.xlsx
 
+#Databases
+data/db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
