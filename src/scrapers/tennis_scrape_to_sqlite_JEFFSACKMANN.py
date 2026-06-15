@@ -15,7 +15,7 @@ import pandas as pd
 # =========================
 # CONFIG
 # =========================
-DB_PATH = 'data/db/tennis_abstract_new_version_merged.db'
+DB_PATH = 'data/db/tennis_abstract_new_version_merged_testing.db'
 
 REPO_RAW_BASE = "https://raw.githubusercontent.com/JeffSackmann/tennis_MatchChartingProject/master/"
 
@@ -23,6 +23,8 @@ MCP_FILES = {
     "mcp_m_matches":             "charting-m-matches.csv",
     "mcp_m_stats_shotdirection": "charting-m-stats-ShotDirection.csv",
     "mcp_m_stats_returndepth":   "charting-m-stats-ReturnDepth.csv",
+    "mcp_m_stats_servedirection":"charting-m-stats-ServeDirection.csv"
+
 }
 
 PLAYERS_DIM_TABLE    = "players_dim"

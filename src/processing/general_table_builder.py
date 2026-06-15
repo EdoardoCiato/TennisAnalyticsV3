@@ -5,6 +5,7 @@ import sqlite3
 import re
 import statistics
 import copy
+import pandas as pd
 
 # TODO: transform speed from mp/h to km/h 
 
@@ -61,37 +62,67 @@ def name_handling_JS(player):
     js_name = " ".join(player_list)
     return js_name
 
-def data_aggregation_JS(indicator, player, reference_group, cursor):
-    if reference_group == "mcp_m_stats_returndepth":
-        # Returndepth values are absolute values, not a percentage
-        query = f'''
-            SELECT "{indicator}", "returnable" FROM "{reference_group}"
-            WHERE "player" = ?
-                '''
-    else:
-        query = f'''
-                    SELECT "{indicator}" FROM "{reference_group}"
-                    WHERE "player" = ?
-                        '''
+def serve_return_JS_data(cursor, indicator, reference_group, player ):
+
+    if indicator in ["deuce_wide", "deuce_middle", "deuce_t"]:
+        cols = ["deuce_wide", "deuce_middle", "deuce_t"]
+    
+    elif indicator.strip() in ["shallow", "deep", "very_deep"]:
+        cols = ["shallow", "deep", "very_deep"]
+
+    elif indicator in["ad_wide", "ad_middle", "ad_t"]:
+        cols = ["ad_wide", "ad_middle", "ad_t"]
+    
+    query = f'''
+                SELECT {", ".join(f'"{c}"' for c in cols)}
+                FROM "{reference_group}"
+                WHERE "player" = ? and "row" = "Total"
+                    ''' 
+    
+
     cursor.execute(query, (player,))
     rows = cursor.fetchall()
-    if rows == []: 
-        return None
-    num = 0
-    den = 0
-    # No career values, so we calculate the average over the career
-    for pair in rows:
-        num += pair[0]
-        try :
-            den += pair[1]
-        except IndexError:
-            den = 0
-    if len(rows[0]) > 1:
-        value = round((num / den) * 100, 1)
-    else:
-        value = round(num/(len(rows)), 1)
 
-    return (value)
+    return rows, cols
+    
+def shot_direction_JS_data(cursor, indicator, reference_group, player):
+    if "FH" in indicator:
+        cols = ["crosscourt", "down_middle", "down_the_line", "inside_out", "inside_in"]
+        row = "B"
+        suffix = "_FH"
+    else:
+        cols = ["crosscourt", "down_middle", "down_the_line"]
+        row = "B"
+        suffix = "_BH"
+    
+    query = f'''
+                SELECT {", ".join(f'"{c}"' for c in cols)} FROM "{reference_group}"
+                WHERE "player" = ? and "row" = ?
+                    ''' 
+    cursor.execute(query, (player, row))
+    
+    rows = cursor.fetchall()
+    cols = list(map(lambda x: x + suffix, cols))
+    return rows, cols
+    
+def data_aggregation_JS(cursor, indicator, reference_group, player):
+
+    if reference_group == 'mcp_m_stats_shotdirection':
+        rows, cols = shot_direction_JS_data(cursor, indicator, reference_group, player)
+    else:
+        rows, cols = serve_return_JS_data(cursor, indicator, reference_group, player)
+    df = pd.DataFrame(rows, columns=cols)
+    #columns-wise sum --> sum of an indicator over all the matches recorded
+    totals = df.sum(numeric_only=True)
+    # row-wise sum --> total number of forehands or backhands
+    side_total = totals.sum()
+    if side_total == 0:
+        return( {col: None for col in cols})
+    
+
+
+    return(dict(zip(cols, round(totals/side_total*100,2))))
+
 
 def extract_games_analyzed(cursor, player):
     query = 'SELECT "Match" FROM group_015 WHERE "__player__" = ? AND MATCH LIKE ? '
@@ -144,6 +175,7 @@ def pull_range_players(position, i, players, indicator, raw_table):
             row = raw_table.get(pl)
             if row:
                 value = row.get(indicator)
+
                 if value not in [None, 'NA', '-']:
                     values.append(value)
 
@@ -190,22 +222,27 @@ def main ():
         # indicator and find the associated value
         for r in rows:
             indicator = r['indicator']
+            if indicator in row_data.keys(): continue
             filter_date = r['filter_date']
             reference_group = r['reference_group']
-            if r['js'] == 1:
-                # adapting to use jeff sackmann
+            if r["js"] == 1:
                 name = name_handling_JS(player)
-                value = data_aggregation_JS(indicator, name, reference_group, cursor)
+                value = data_aggregation_JS(cursor, indicator, reference_group, name)
+                if value is None:
+                    missing_info.append(indicator)
+                else:
+                    row_data.update(value)   # value is a dict
             else:
                 value = extract_indicator(indicator, player, reference_group, filter_date, cursor)
-            if value in [None, 'NA', '-']:
-                # storing missng data for computation
-                missing_info.append(indicator)
-            # storing indicator and value to build the raw table
-            row_data[indicator] = value
-        if missing_info:
-            missing_data[player] = missing_info
-        missing_info = []
+
+                if value in [None, "NA", "-"]:
+                    missing_info.append(indicator)
+
+                row_data[indicator] = value
+
+            if missing_info:
+                missing_data.setdefault(player, []).extend(missing_info)
+            missing_info = []
         i += 1
         row_data['matches_analyzed'] = extract_games_analyzed(cursor, player)
         raw_table[player] = row_data
