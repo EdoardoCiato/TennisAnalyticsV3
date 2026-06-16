@@ -1,25 +1,66 @@
 
 from __future__ import annotations
-
 import sqlite3
 import re
 import statistics
 import copy
 import pandas as pd
 
-# TODO: transform speed from mp/h to km/h 
+CONVERSION_RATE_MPH_KMH = 1.60934
 
-def create_table(cursor, conn):
-    # get info on indicators from reference table
+INDICATOR_TO_COLS = {
+    "deuce_wide":   ["deuce_wide", "deuce_middle", "deuce_t"],
+    "deuce_middle": ["deuce_wide", "deuce_middle", "deuce_t"],
+    "deuce_t":      ["deuce_wide", "deuce_middle", "deuce_t"],
+    "ad_wide":      ["ad_wide", "ad_middle", "ad_t"],
+    "ad_middle":    ["ad_wide", "ad_middle", "ad_t"],
+    "ad_t":         ["ad_wide", "ad_middle", "ad_t"],
+    "shallow":      ["shallow", "deep", "very_deep"],
+    "deep":         ["shallow", "deep", "very_deep"],
+    "very_deep":    ["shallow", "deep", "very_deep"],
+}
+
+def create_general_table(cursor: sqlite3.Cursor, conn: sqlite3.Connection) -> list[dict]:
+
+    """
+    Create the general summary table and return the indicator metadata.
+
+    The function reads all indicators from the reference table,
+    dynamically builds the SQL schema of the general table,
+    creates the table if it does not already exist, and returns
+    a list containing the metadata required for later processing.
+
+    Parameters
+    ----------
+    cursor : sqlite3.Cursor
+        Database cursor used to execute SQL queries.
+    conn : sqlite3.Connection
+        Active SQLite database connection.
+
+    Returns
+    -------
+    list[dict]
+        Metadata for each indicator, including:
+        - indicator --> name of the column in the DB; 
+        - column_name --> expanded name of the column ( for clarity purposes); 
+        - reference_group --> table of DB where the data can be found; 
+        - filter_date --> keyword use to filter rows to obtain career data; 
+        - js --> whether the data was obtained from JeffSackmann repo; 
+    """
+
+     # Retrieve all indicator definitions from the reference table.
     cursor.execute('SELECT * from "reference_table"')
     raw_rows = cursor.fetchall()
-    code_create_table = f'''
+    sql_create_table = f'''
         CREATE TABLE IF NOT EXISTS "general" (
         "ranking" NUMERIC,
         "player_name" TEXT PRIMARY KEY,
         '''
-    rows = []
+    # rows contains all the information related to the indicators
+    indicator_metadata = []
     for r in raw_rows:
+        # Clean the indicator name so it can be safely used
+        # as a SQL column name.
         column_name = (
             str(r[2])
             .strip()
@@ -28,14 +69,49 @@ def create_table(cursor, conn):
             .replace(',', '')
             .replace("'", '"')
         )
-        code_create_table += f'"{column_name}" NUMERIC,\n'
-        rows.append({"indicator": r[0], "column_name": r[2], "reference_group": r[7], "filter_date": r[8],"js": r[9]})
-    code_create_table += '"matches_analyzed" NUMERIC)'
-    cursor.execute(code_create_table)
-    conn.commit()
-    return rows
+        # we add all the indicators in reference table to the general table we are creating
+        sql_create_table += f'"{column_name}" NUMERIC,\n'
 
-def extract_indicator(indicator, player, reference_group, filter_date, cursor):   
+        indicator_metadata.append({ "indicator": r[0],
+                                    "column_name": r[2],
+                                    "reference_group": r[7],
+                                    "filter_date": r[8],
+                                    "js": r[9]})
+        
+    sql_create_table += '"matches_analyzed" NUMERIC)'
+    cursor.execute(sql_create_table)
+    conn.commit()
+    return indicator_metadata
+
+def fetch_indicator_value(indicator: str, player: str, reference_group: str, filter_date: str, cursor: sqlite3.Cursor) -> float | str :  
+        """
+    Extract the value of a specific indicator for a given player.
+
+    The function queries the appropriate reference table, retrieves the
+    most relevant row based on sample size, and converts percentage values
+    to floats when needed. If no valid value is found, it returns "NA".
+
+    Parameters
+    ----------
+    indicator : str
+        Name of the indicator column to retrieve.
+    player : str
+        Player name used to filter the query.
+    reference_group : str
+        Table containing the indicator values.
+    filter_date : str
+        Column used to filter career data.
+    cursor : sqlite3.Cursor
+        SQLite cursor used to execute the query.
+
+    Returns
+    -------
+    float | str
+        Numerical value for the indicator, or "NA" if unavailable.
+    """
+
+        # Order by match because some low ranking players may have more challengers matches than ATP
+        # matches and we pick the one with the highest sample size. 
         query = f'''
         SELECT "{indicator.strip()}" FROM "{reference_group}"
         WHERE "__player__" = ? 
@@ -45,41 +121,85 @@ def extract_indicator(indicator, player, reference_group, filter_date, cursor):
                     '''
         cursor.execute(query, (player.strip(),  "%Career%"))
         row = cursor.fetchone()
-        value = row[0] if row is not None else "NA"
+        if row is None or row[0] in (None, "NA", "-"):
+            return "NA"
+        value = row[0]
 
-        if value not in [None, 'NA', '-']:
-            if isinstance(value, str) and '%' in value:
-                value = float(value.replace('%', ''))
-            else:
-                value = float(value)
+        if isinstance(value, str):
+            value = value.replace("%", "")
+        value = float(value)
 
         return value
     
-def name_handling_JS(player):
-    # tennis abstract name: CarlosAlcaraz
-    # JS name: Carlos Alcaraz
+def convert_ta_name_to_js(player: str) -> str:
+    """
+    Convert a Tennis Abstract player name into the format used by
+    the Jeff Sackmann datasets.
+
+    Tennis Abstract stores player names without spaces (e.g. "CarlosAlcaraz"),
+    while Jeff Sackmann datasets use a space-separated format
+    (e.g. "Carlos Alcaraz"). The function splits the name at each
+    capital letter and joins the resulting parts with spaces.
+
+    Parameters
+    ----------
+    player : str
+        Player name in Tennis Abstract format.
+
+    Returns
+    -------
+    str
+        Player name formatted according to the Jeff Sackmann convention.
+
+    Examples
+    --------
+    >>> convert_ta_name_to_js("CarlosAlcaraz")
+    'Carlos Alcaraz'
+    """
     player_list = re.findall('[A-Z][^A-Z]*', player)
     js_name = " ".join(player_list)
     return js_name
 
-def serve_return_JS_data(cursor, indicator, reference_group, player ):
+def fetch_serve_return_JS_data(cursor: sqlite3.Cursor, indicator: str, reference_group: str, player:str ) -> tuple[list[tuple], list[str]]:
+    """
+    Retrieve serve-direction or return-depth data from a Jeff Sackmann table.
 
-    if indicator in ["deuce_wide", "deuce_middle", "deuce_t"]:
-        cols = ["deuce_wide", "deuce_middle", "deuce_t"]
-    
-    elif indicator.strip() in ["shallow", "deep", "very_deep"]:
-        cols = ["shallow", "deep", "very_deep"]
+    Depending on the requested indicator, the function identifies the
+    corresponding indicator group and retrieves all related columns from
+    the specified table. This function is used exclusively for serve
+    direction and return depth statistics, which require grouped
+    extraction rather than single-indicator retrieval (fetch_indicator_value)
 
-    elif indicator in["ad_wide", "ad_middle", "ad_t"]:
-        cols = ["ad_wide", "ad_middle", "ad_t"]
+    Parameters
+    ----------
+    cursor : sqlite3.Cursor
+        Database cursor used to execute SQL queries.
+    indicator : str
+        Indicator used to determine which group of statistics should
+        be extracted.
+    reference_group : str
+        Name of the database table containing the requested statistics.
+    player : str
+        Player whose statistics are being retrieved.
+
+    Returns
+    -------
+    tuple[list[tuple], list[str]]
+        A tuple containing:
+        - rows: Query result returned by SQLite.
+        - cols: Names of the retrieved columns.
+    """
+
+    cols = INDICATOR_TO_COLS.get(indicator)
+    if cols is None:
+        raise ValueError(f"Unknown indicator: {indicator}")
     
     query = f'''
                 SELECT {", ".join(f'"{c}"' for c in cols)}
                 FROM "{reference_group}"
-                WHERE "player" = ? and "row" = "Total"
+                WHERE "player" = ? 
+                AND "row" = "Total"
                     ''' 
-    
-
     cursor.execute(query, (player,))
     rows = cursor.fetchall()
 
@@ -110,7 +230,7 @@ def data_aggregation_JS(cursor, indicator, reference_group, player):
     if reference_group == 'mcp_m_stats_shotdirection':
         rows, cols = shot_direction_JS_data(cursor, indicator, reference_group, player)
     else:
-        rows, cols = serve_return_JS_data(cursor, indicator, reference_group, player)
+        rows, cols = fetch_serve_return_JS_data(cursor, indicator, reference_group, player)
     df = pd.DataFrame(rows, columns=cols)
     #columns-wise sum --> sum of an indicator over all the matches recorded
     totals = df.sum(numeric_only=True)
@@ -119,10 +239,11 @@ def data_aggregation_JS(cursor, indicator, reference_group, player):
     if side_total == 0:
         return( {col: None for col in cols})
     
-
-
     return(dict(zip(cols, round(totals/side_total*100,2))))
 
+
+def serve_speed_conversion(value):
+    return round(value * CONVERSION_RATE_MPH_KMH,0)
 
 def extract_games_analyzed(cursor, player):
     query = 'SELECT "Match" FROM group_015 WHERE "__player__" = ? AND MATCH LIKE ? '
@@ -200,12 +321,11 @@ def handling_NA( player, indicator, players, raw_table):
 def main ():
     conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
     cursor = conn.cursor()
-
     cursor.execute('''
                 DROP TABLE IF EXISTS general
                 ''')
-
-    rows = create_table(cursor, conn)
+    rows = create_general_table(cursor, conn)
+    print(type(rows))
     players = []
     with open("data/raw/top200.txt") as file:
             for line in file:
@@ -226,17 +346,18 @@ def main ():
             filter_date = r['filter_date']
             reference_group = r['reference_group']
             if r["js"] == 1:
-                name = name_handling_JS(player)
+                name = convert_ta_name_to_js(player)
                 value = data_aggregation_JS(cursor, indicator, reference_group, name)
                 if value is None:
                     missing_info.append(indicator)
                 else:
                     row_data.update(value)   # value is a dict
             else:
-                value = extract_indicator(indicator, player, reference_group, filter_date, cursor)
-
+                value = fetch_indicator_value(indicator, player, reference_group, filter_date, cursor)
                 if value in [None, "NA", "-"]:
                     missing_info.append(indicator)
+                elif indicator in ["1st_Avg" , "1st_T_Avg", "1st_Wide_Avg", "2nd_Avg", "2nd_T_Avg", "2nd_Wide_Avg"]:
+                    value = serve_speed_conversion(value)
 
                 row_data[indicator] = value
 
@@ -256,7 +377,6 @@ def main ():
     for row in imputed_table.values():
         insert_row_into_general_table(row, cursor)
             
-
     conn.commit()
     conn.close()
 
