@@ -205,10 +205,43 @@ def fetch_serve_return_JS_data(cursor: sqlite3.Cursor, indicator: str, reference
 
     return rows, cols
     
-def shot_direction_JS_data(cursor, indicator, reference_group, player):
-    if "FH" in indicator:
+def shot_direction_JS_data(cursor: sqlite3.Cursor, indicator: str, reference_group: str, player: str)-> tuple[list[tuple], list[str]]:
+    """
+    Retrieve shot-direction statistics from a Jeff Sackmann charting table.
+
+    Depending on the requested indicator, the function extracts either
+    forehand or backhand directional data. 
+    To avoid naming conflicts when forehand and backhand statistics are
+    later combined, a suffix identifying the shot type is appended to
+    each column name.
+
+    Parameters
+    ----------
+    cursor : sqlite3.Cursor
+        Database cursor used to execute SQL queries.
+    indicator : str
+        Indicator used to determine whether forehand or backhand
+        directional statistics should be retrieved.
+    reference_group : str
+        Name of the database table containing the requested statistics.
+    player : str
+        Player whose statistics are being retrieved.
+
+    Returns
+    -------
+    tuple[list[tuple], list[str]]
+        A tuple containing:
+        - rows: Values retrieved from the database for the selected
+          shot-direction statistics.
+        - cols: Names of the retrieved columns with a shot-type suffix
+          appended (e.g. '_FH' or '_BH').
+    """
+    if indicator.endswith("_FH"):
+        # columns that will be selected 
         cols = ["crosscourt", "down_middle", "down_the_line", "inside_out", "inside_in"]
-        row = "B"
+        # select rows related to forehand 
+        row = "F"
+        # adding a suffix to name the variables differently 
         suffix = "_FH"
     else:
         cols = ["crosscourt", "down_middle", "down_the_line"]
@@ -222,56 +255,155 @@ def shot_direction_JS_data(cursor, indicator, reference_group, player):
     cursor.execute(query, (player, row))
     
     rows = cursor.fetchall()
+    # adding the suffix because otherwise the columns have the same name and are hard to distinct. 
     cols = list(map(lambda x: x + suffix, cols))
     return rows, cols
     
-def data_aggregation_JS(cursor, indicator, reference_group, player):
+def data_aggregation_JS(cursor: sqlite3.Cursor, indicator: str, reference_group: str, player: str) -> dict:
+    """
+    Aggregate directional statistics from Jeff Sackmann charting data.
 
+    The function retrieves the relevant directional statistics for a
+    given player, aggregates the values across all available matches,
+    and converts the resulting counts into percentage distributions.
+    Depending on the reference table, the data is extracted using the
+    appropriate helper function for either shot-direction statistics
+    or serve-direction / return-depth statistics.
+
+    Parameters
+    ----------
+    cursor : sqlite3.Cursor
+        Database cursor used to execute SQL queries.
+    indicator : str
+        Indicator used to determine which directional statistics
+        should be retrieved.
+    reference_group : str
+        Name of the database table containing the requested statistics.
+    player : str
+        Player whose statistics are being aggregated.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping each directional category to its percentage
+        share of the total observations. If no observations are
+        available, all categories are assigned a value of None.
+    """
+    # Retrieve the appropriate directional dataset.
     if reference_group == 'mcp_m_stats_shotdirection':
         rows, cols = shot_direction_JS_data(cursor, indicator, reference_group, player)
     else:
         rows, cols = fetch_serve_return_JS_data(cursor, indicator, reference_group, player)
+    # Convert the result in a Dataframe
     df = pd.DataFrame(rows, columns=cols)
-    #columns-wise sum --> sum of an indicator over all the matches recorded
+    #Sum each directional category across all recorded matches.
     totals = df.sum(numeric_only=True)
-    # row-wise sum --> total number of forehands or backhands
+    # Total number of observations
     side_total = totals.sum()
+    # Avoid division by zero when no data is available.
     if side_total == 0:
         return( {col: None for col in cols})
-    
+    # Convert counts to percentages.
     return(dict(zip(cols, round(totals/side_total*100,2))))
 
-
-def serve_speed_conversion(value):
+def serve_speed_conversion(value: float) -> float:
+    """
+    Convert serve speed from mph to km/h.
+    """
     return round(value * CONVERSION_RATE_MPH_KMH,0)
 
-def extract_games_analyzed(cursor, player):
+def extract_matches_analyzed(cursor: sqlite3.Cursor, player: str) -> int | None :
+    """
+    Extract the number of charted matches available for a player.
+
+    The function retrieves the career entry from the reference table
+    and extracts the numerical match count from the corresponding
+    "Match" field.
+
+    Parameters
+    ----------
+    cursor : sqlite3.Cursor
+        Database cursor used to execute SQL queries.
+    player : str
+        Player whose match count is being retrieved.
+
+    Returns
+    -------
+    int | None
+        Number of matches available for the player, or None if the
+        information cannot be found.
+    """
     query = 'SELECT "Match" FROM group_015 WHERE "__player__" = ? AND MATCH LIKE ? '
     cursor.execute(query, (player.strip(),  "%Career%"))
     row = cursor.fetchone()
     if row is None or row[0] is None:
         return None
+    # Example : Career (145 matches) --> 145
     match = re.search(r'\d+', str(row[0]))
+    # The group function gives the output of the Regex search. 
     return int(match.group()) if match else None
 
-def insert_row_into_general_table(row_data, cursor):
-    values = list(row_data.values())
+def insert_row_into_general_table(player_data: dict, cursor: sqlite3.Cursor) -> None:
+    """
+    Insert a row into the general table.
+
+    Parameters
+    ----------
+    player_data : dict
+        Dictionary containing the values to be inserted. The values
+        are inserted following the dictionary insertion order.
+    cursor : sqlite3.Cursor
+        Database cursor used to execute the INSERT statement.
+    """
+    # Create an array with all the values from the dictionary keeping the same order. 
+    values = list(player_data.values())
+
     placeholders = ",".join(['?']*len(values))
+    # The dictionary keys must follow the same order as the
+    # columns defined in the general table schema.
     query = f'''
         INSERT INTO general VALUES ({placeholders})
     '''
     cursor.execute(query, values)
 
-def check_range(position, i):
-    # Players at the extremes of the ranking may not have enough players above or below,
-    # we adjust by adding players to the opposite side to compensate
+def adjust_range(position: int, i:int) -> tuple[int, int]:
+    """
+    Compute a ranking range centered around a given position while
+    respecting the ranking boundaries.
+
+    The function expands the range by `i` positions above and below the
+    target ranking. If the resulting range exceeds the available ranking
+    limits (0-200), the missing positions are compensated for on the
+    opposite side to preserve the intended range size.
+
+    Parameters
+    ----------
+    position : int
+        Ranking position of the target player.
+    i : int
+        Number of positions to include above and below the target
+        ranking.
+
+    Returns
+    -------
+    tuple[int, int]
+        Lower and upper bounds of the adjusted ranking range.
+    """
+    # Players at the extremes of the ranking may not have enough players
+    # above or below them. The range is expanded on the opposite side to
+    # maintain the desired sample size. 
     adjustment = 0
+
     final_spot = position + i
     initial_spot = position - i
+    # if the final spot is above 200,
+    # we top the upper boundary to 200 and add the difference to the initial spot
     if final_spot > 200:
         adjustment = final_spot - 200
         final_spot = 200
         initial_spot -= adjustment
+    # if the initial spot is below 0,
+    # we top the low boundary to 0 and add the difference to the final spot
     if initial_spot < 0:
         adjustment = -initial_spot
         initial_spot = 0
@@ -279,53 +411,113 @@ def check_range(position, i):
     
     return initial_spot, final_spot
 
+def pull_range_players(position: int, i: int, players: list, indicator: str, raw_player_table: dict) -> list:
+        """
+    Extract indicator values from players ranked near a target position.
 
-def pull_range_players(position, i, players, indicator, raw_table):
+    The function identifies all players within a ranking range centered
+    around the specified position, retrieves the requested indicator for
+    each player, and returns the available values after excluding
+    missing observations.
+    The ranking range is adjusted when the target player is near the
+    top or bottom of the rankings to preserve the intended sample size.
+
+    Parameters
+    ----------
+    position : int
+        Ranking position of the target player.
+    i : int
+        Number of ranking positions to include above and below the
+        target player.
+    players : list
+        Ordered list of player names, where the list position
+        corresponds to the ranking position.
+    indicator : str
+        Indicator whose values should be extracted.
+    raw_player_table : dict
+        Dictionary containing all player statistics.
+
+    Returns
+    -------
+    list
+        Valid values of the requested indicator for players within the
+        adjusted ranking range.
+    """
         # Ensuring the validity of the range
-        percentage = None
         values = []
         # obtain the corrected range
-        initial_spot, final_spot = check_range(position, i)
+        initial_spot, final_spot = adjust_range(position, i)
         local_range_players = []
         for i, row in enumerate(players):
-            # Going from numerical range, to actual players. 
+            # From numerical range, to actual players. 
             if i >= initial_spot and i <= final_spot:
                 local_range_players.append(row.strip())
 
         for pl in local_range_players:
-            row = raw_table.get(pl)
+            row = raw_player_table.get(pl)
             if row:
                 value = row.get(indicator)
-
+                # Include values only if not missing. 
                 if value not in [None, 'NA', '-']:
                     values.append(value)
 
-        return values, percentage
-def handling_NA( player, indicator, players, raw_table):
-    # getting the ranking of a player
+        return values
+
+def handling_NA( player: str, indicator: str, players:list, raw_player_table: dict) -> float:
+    """
+    Impute a missing indicator value using data from similarly ranked players.
+
+    The function progressively expands the ranking window around the
+    target player and collects valid values for the requested indicator.
+    Once a sufficiently large sample is available, the missing value is
+    replaced with the median of the collected observations.
+
+    Parameters
+    ----------
+    player : str
+        Player whose missing value is being imputed.
+    indicator : str
+        Indicator requiring imputation.
+    players : list
+        Ordered list of player names, where the list position
+        corresponds to the ranking position.
+    raw_player_table : dict
+        Dictionary containing all player statistics.
+
+    Returns
+    -------
+    float
+        Imputed value for the requested indicator.
+    """
     imputed_val = 0
+    # Create a dictionary, player = key, ranking = value.
     position_map = {player: i for i, player in enumerate(players)}
+    # Extract the position of the target player. 
     position = position_map[player]
     for i in range(20,61,10):
-        values, percentage = pull_range_players(position, i, players, indicator, raw_table)
-        # Checking if there are enough players in the range
+        values = pull_range_players(position, i, players, indicator, raw_player_table)
+        # Check if there are enough players in the range.
+        # Require at least 30 observations to obtain a reasonably stable estimate.
+        # If the condition is not met, expand the window (i).
         if len(values) >= 30:
-            # calculate and return the median
-            imputed_val =  (round(statistics.median(values), 1))
-            # if percentage:
-            #     imputed_val = str(imputed_val)+'%'
+            # Calculate and return the median.
+            imputed_val = round(statistics.median(values), 1)
             break
 
     return imputed_val
 
-def main ():
+def main():
+    # Connect to the db. 
     conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
     cursor = conn.cursor()
+    # Drop the already existing table. 
     cursor.execute('''
                 DROP TABLE IF EXISTS general
                 ''')
-    rows = create_general_table(cursor, conn)
-    print(type(rows))
+    # Create the new table with the columns from the reference table and 
+    # retrieve the metadata for each indicator. 
+    indicator_metadata = create_general_table(cursor, conn)
+    # Load players in ranking order.
     players = []
     with open("data/raw/top200.txt") as file:
             for line in file:
@@ -333,50 +525,60 @@ def main ():
     PLAYERS  = players
     missing_data = {}
     missing_info = []
-    raw_table = {}
-    i = 1
+    raw_player_table = {}
+    ranking = 1
     for player in PLAYERS:
+        missing_info = []
         player = player.strip()
-        row_data = { "ranking": i, "player_name": player}
-        # rows contains info about indicators, so for each player we get the info for that 
-        # indicator and find the associated value
-        for r in rows:
+        # Build one row per player, using indicator names as keys.
+        player_data = { "ranking": ranking, "player_name": player}
+        for r in indicator_metadata:
             indicator = r['indicator']
-            if indicator in row_data.keys(): continue
+            # Skip the process if the indicator is already included in the dictionary
+            if indicator in player_data:
+                continue
             filter_date = r['filter_date']
             reference_group = r['reference_group']
+            # If the indicator is a JeffSackmann indicator, convert the name and calculate it with the appropriate function. 
             if r["js"] == 1:
                 name = convert_ta_name_to_js(player)
                 value = data_aggregation_JS(cursor, indicator, reference_group, name)
                 if value is None:
                     missing_info.append(indicator)
                 else:
-                    row_data.update(value)   # value is a dict
+                    player_data.update(value)   # value is a dict
             else:
                 value = fetch_indicator_value(indicator, player, reference_group, filter_date, cursor)
                 if value in [None, "NA", "-"]:
                     missing_info.append(indicator)
+                # Convert the speed when dealing with a serve speed indicator. 
                 elif indicator in ["1st_Avg" , "1st_T_Avg", "1st_Wide_Avg", "2nd_Avg", "2nd_T_Avg", "2nd_Wide_Avg"]:
                     value = serve_speed_conversion(value)
-
-                row_data[indicator] = value
+                # Add the element to the row data dictionary
+                player_data[indicator] = value
 
             if missing_info:
+                # Add the missing info to the NA dictionary.
                 missing_data.setdefault(player, []).extend(missing_info)
-            missing_info = []
-        i += 1
-        row_data['matches_analyzed'] = extract_games_analyzed(cursor, player)
-        raw_table[player] = row_data
+        ranking += 1
+        # Extract matches analyzed.
+        player_data['matches_analyzed'] = extract_matches_analyzed(cursor, player)
+        # Once all the information for the player is available, add it to the raw table. 
+        raw_player_table[player] = player_data
     # creating a copy to leave the original untouched
-    imputed_table = copy.deepcopy(raw_table)
+    imputed_player_table = copy.deepcopy(raw_player_table)
+    # Imputed flags stores what player-indicator combo have been imputed for future reference. 
     imputed_flags = {}
+    # For loop to impute the missing values. 
     for pl, indicators in missing_data.items():
         for ind in indicators:
-            imputed_table[pl][ind] = (handling_NA( pl, ind, PLAYERS, raw_table))
+            imputed_player_table[pl][ind] = handling_NA( pl, ind, PLAYERS, raw_player_table)
             imputed_flags[(pl, ind)] = 1
-    for row in imputed_table.values():
+    # The imputed table is the final version inserted into the database.
+    for row in imputed_player_table.values():
         insert_row_into_general_table(row, cursor)
-            
+    
+    # Commit all the changes to the DB and close the connection
     conn.commit()
     conn.close()
 
