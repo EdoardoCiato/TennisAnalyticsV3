@@ -542,11 +542,12 @@ def main():
             # If the indicator is a JeffSackmann indicator, convert the name and calculate it with the appropriate function. 
             if r["js"] == 1:
                 name = convert_ta_name_to_js(player)
-                value = data_aggregation_JS(cursor, indicator, reference_group, name)
-                if value is None:
-                    missing_info.append(indicator)
+                value_dict_js = data_aggregation_JS(cursor, indicator, reference_group, name)
+                has_no_na = all(value is not None for value in value_dict_js.values())
+                if has_no_na:
+                    player_data.update(value_dict_js)
                 else:
-                    player_data.update(value)   # value is a dict
+                    missing_info.extend([key for key, value in value_dict_js.items() if value is None])
             else:
                 value = fetch_indicator_value(indicator, player, reference_group, filter_date, cursor)
                 if value in [None, "NA", "-"]:
@@ -575,6 +576,7 @@ def main():
             imputed_player_table[pl][ind] = handling_NA( pl, ind, PLAYERS, raw_player_table)
             imputed_flags[(pl, ind)] = 1
     # The imputed table is the final version inserted into the database.
+
     for row in imputed_player_table.values():
         insert_row_into_general_table(row, cursor)
     

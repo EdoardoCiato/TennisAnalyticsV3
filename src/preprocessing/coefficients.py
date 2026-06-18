@@ -1,12 +1,43 @@
+from __future__ import annotations
 import sqlite3
 import numpy as np
 import pandas as pd
 from src.helpers.helper_functions import create_category_dictionary
 from src.helpers.helper_functions import load_reference_table
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+
 
 DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
 
-def pull_columns_values(conn):
+# TODO: upload table to sql. 
+# TODO: Correlation matrix --> pick only relevant variables. 
+
+
+def correlation_analysis(df, indicators, title):
+    corr = df[indicators].corr()
+
+    fig, ax = plt.subplots(figsize=(len(indicators) * 1.2, len(indicators)))
+    
+    sns.heatmap(
+        corr,
+        annot=True,
+        cmap='coolwarm',
+        fmt='.2f',
+        vmin=-1, vmax=1,          # fix the color scale
+        linewidths=0.5,           # grid lines for readability
+        ax=ax
+    )
+    
+    ax.set_title(title, fontsize=14, pad=12)
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+
+def fetch_general_table_data(conn):
 
     df = pd.read_sql_query('SELECT * FROM general', conn)
     return df
@@ -15,31 +46,35 @@ def main ():
     conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    columns = []
+    # Obtain the name of the columns in general. 
     cursor.execute("PRAGMA table_info(general)")
-    for row in cursor.fetchall():
-        columns.append(row["name"])
-    full_df = pull_columns_values(conn)
-    # print perricard rally because the values are too high
-    matches_analyzed = full_df['matches_analyzed']
+    full_df = fetch_general_table_data(conn)
+    # Df containing only variables to be analyzed.
     variables_df = full_df.copy().drop(['ranking', 'player_name', 'matches_analyzed'], axis = 1)
-    percentiles_df = variables_df.rank(pct=True) * 100
-    percentiles_df = percentiles_df.apply ( lambda x: round(x, 3))
+    # Load reference table information to retrieve indicator metadata.
     rows = load_reference_table(cursor)
+    # List containing only the indicator with negative parity ( the lower the better).
+    negative_parity_cols = [r['column_name'] for r in rows if  r['parity'] == -1 ]
+    # Find the positive parity columns by exclusion. 
+    positive_parity_cols = list(set(variables_df.columns)- set(negative_parity_cols))
+    # Calculate percentile for positive variables. 
+    variables_df[positive_parity_cols] = variables_df[positive_parity_cols].rank(pct=True) * 100
+    # Calculate percentile for negative variables, the lower the better.
+    variables_df[negative_parity_cols] = variables_df[negative_parity_cols].rank(pct=True, ascending= False) * 100
+    # Round for visual purposes.
+    percentiles_df = variables_df.copy().apply( lambda x: round(x, 3)) 
     categories_label = ['Serve', 'Return', 'Rally', 'Attitude', 'Tactics', 'Efficiency']
-    dict_categories = create_category_dictionary(rows, categories_label)
-
-    coefficients_df = full_df[['ranking', 'player_name']]
+    # Create a dictionary key: category, value list of indicators belonging to that category. 
+    dict_categories = create_category_dictionary(rows, categories_label, True)
+    # Create the final df. 
+    coefficients_df = full_df.copy()[['ranking', 'player_name']]
     for label, indicators in dict_categories.items():
-        indicators = indicators[1:]
+        # Start from 1 because each group contains player_name
+        indicators.remove('player_name')
+        # Index = average of every quantile for that specific category.) 
         coefficients_df[label] = percentiles_df[indicators].mean(axis=1)
+        (correlation_analysis(percentiles_df, indicators, label))
+
+    conn.close()
     
-    print(coefficients_df)
-
-
-
-
-
-
 main()
-
