@@ -65,7 +65,7 @@ def main():
     rows = (load_reference_table(cursor))
 
     categories_label = ['Serve', 'Return', 'Rally', 'Attitude', 'Tactics', 'Efficiency']
-    players = [ 'TommyPaul', 'LorenzoSonego']
+    players = [ 'TomasMartinEtcheverry', 'LorenzoSonego']
     player1 = players[1]
     player2 = players[0]
 

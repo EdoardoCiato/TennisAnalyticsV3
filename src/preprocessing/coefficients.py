@@ -6,6 +6,7 @@ from src.helpers.helper_functions import create_category_dictionary
 from src.helpers.helper_functions import load_reference_table
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
 
 
 
@@ -18,6 +19,13 @@ DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
 
 def correlation_analysis(df, indicators, title):
     corr = df[indicators].corr()
+    upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column] > 0.80)]
+
+    corr.drop(to_drop, axis=1, inplace=True)
+    indicators = corr.columns
+
+    return indicators
 
     fig, ax = plt.subplots(figsize=(len(indicators) * 1.2, len(indicators)))
     
@@ -63,7 +71,7 @@ def main ():
     variables_df[negative_parity_cols] = variables_df[negative_parity_cols].rank(pct=True, ascending= False) * 100
     # Round for visual purposes.
     percentiles_df = variables_df.copy().apply( lambda x: round(x, 3)) 
-    categories_label = ['Serve', 'Return', 'Rally', 'Attitude', 'Tactics', 'Efficiency']
+    categories_label = ['Serve', 'Return', 'Rally', 'Attitude', 'Efficiency']
     # Create a dictionary key: category, value list of indicators belonging to that category. 
     dict_categories = create_category_dictionary(rows, categories_label, True)
     # Create the final df. 
@@ -71,10 +79,18 @@ def main ():
     for label, indicators in dict_categories.items():
         # Start from 1 because each group contains player_name
         indicators.remove('player_name')
+        indicators = (correlation_analysis(percentiles_df, indicators, label))
+        print(list(indicators))
         # Index = average of every quantile for that specific category.) 
         coefficients_df[label] = percentiles_df[indicators].mean(axis=1)
-        (correlation_analysis(percentiles_df, indicators, label))
 
+    coefficients_df['global'] = coefficients_df[categories_label].mean(axis=1)
+    print(coefficients_df['global'])
+    print(coefficients_df.sort_values('global', ascending=False))
+        
+    # model = TSNE(n_components = len(categories_label), random_state = 0)
+    # tsne_data = model.fit_transform(percentiles_df)
+    # print(tsne_data)
     conn.close()
     
 main()
