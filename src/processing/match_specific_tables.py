@@ -51,6 +51,19 @@ def delta_col_and_sorting( df, parity_dict, cursor, players ):
 
     return df_scaled, most_relevant_indicators
 
+def fetch_coefficients_data(conn, players):
+
+    placeholders = ",".join("?" * len(players))
+
+    query = f"""
+    SELECT *
+    FROM coefficients
+    WHERE "player_name" IN ({placeholders})
+    """
+
+    df = pd.read_sql_query(query, conn, params=players)
+    return df.drop(['index', 'ranking'], axis = 1).set_index('player_name').T
+
 def main():
     conn = sqlite3.connect('data/db/tennis_abstract_new_version_merged_testing.db')
     cursor = conn.cursor()
@@ -90,6 +103,8 @@ def main():
 
     tables.update(scaled_tables)
 
-    export_tables_by_category(tables, rows, f'outputs/excel/tables_{player1}_{player2}.xlsx')
+    tables[('coefficients', 'full')] = fetch_coefficients_data(conn,players)
+
+    export_tables_by_category(tables, rows, f'outputs/excel/tables_{player1}_{player2}v2.xlsx')
 
 main()

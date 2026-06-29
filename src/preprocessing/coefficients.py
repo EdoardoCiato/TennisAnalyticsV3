@@ -16,7 +16,6 @@ DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
 # TODO: upload table to sql. 
 # TODO: Correlation matrix --> pick only relevant variables. 
 
-
 def correlation_analysis(df, indicators, title):
     corr = df[indicators].corr()
     upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
@@ -49,6 +48,7 @@ def fetch_general_table_data(conn):
 
     df = pd.read_sql_query('SELECT * FROM general', conn)
     return df
+
 
 def main ():
     conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
@@ -85,12 +85,14 @@ def main ():
         coefficients_df[label] = percentiles_df[indicators].mean(axis=1)
 
     coefficients_df['global'] = coefficients_df[categories_label].mean(axis=1)
-    print(coefficients_df['global'])
+    print(coefficients_df[coefficients_df['player_name'].isin(['LorenzoSonego', 'TomasMartinEtcheverry'])])
     print(coefficients_df.sort_values('global', ascending=False))
         
     # model = TSNE(n_components = len(categories_label), random_state = 0)
     # tsne_data = model.fit_transform(percentiles_df)
     # print(tsne_data)
+    coefficients_df.to_sql(name='coefficients', con=conn)
     conn.close()
+
     
 main()
