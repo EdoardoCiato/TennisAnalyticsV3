@@ -78,7 +78,7 @@ def main():
     rows = (load_reference_table(cursor))
 
     categories_label = ['Serve', 'Return', 'Rally', 'Attitude', 'Tactics', 'Efficiency']
-    players = [ 'TomasMartinEtcheverry', 'LorenzoSonego']
+    players = [ 'GabrielDiallo', 'LorenzoSonego']
     player1 = players[1]
     player2 = players[0]
 
@@ -105,6 +105,6 @@ def main():
 
     tables[('coefficients', 'full')] = fetch_coefficients_data(conn,players)
 
-    export_tables_by_category(tables, rows, f'outputs/excel/tables_{player1}_{player2}v2.xlsx')
+    export_tables_by_category(tables, rows, f'outputs/excel/tables_{player1}_{player2}.xlsx')
 
 main()
