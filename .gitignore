@@ -4,6 +4,7 @@
 # Tennis Analytics outputs
 outputs/excel/
 outputs/html/
+outputs/court_vision
 
 # Temporary Excel files
 ~$*.xlsx
