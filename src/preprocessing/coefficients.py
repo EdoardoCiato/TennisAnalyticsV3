@@ -79,20 +79,15 @@ def main ():
     for label, indicators in dict_categories.items():
         # Start from 1 because each group contains player_name
         indicators.remove('player_name')
-        indicators = (correlation_analysis(percentiles_df, indicators, label))
-        print(list(indicators))
         # Index = average of every quantile for that specific category.) 
         coefficients_df[label] = percentiles_df[indicators].mean(axis=1)
 
     coefficients_df['global'] = coefficients_df[categories_label].mean(axis=1)
-    print(coefficients_df[coefficients_df['player_name'].isin(['LorenzoSonego', 'TomasMartinEtcheverry'])])
+    print(coefficients_df[coefficients_df['player_name'] == "GabrielDiallo"])
     print(coefficients_df.sort_values('global', ascending=False))
         
-    # model = TSNE(n_components = len(categories_label), random_state = 0)
-    # tsne_data = model.fit_transform(percentiles_df)
-    # print(tsne_data)
-    coefficients_df.to_sql(name='coefficients', con=conn)
+    coefficients_df.to_sql(name='coefficients', con=conn, if_exists='replace')
+    
     conn.close()
 
-    
 main()
