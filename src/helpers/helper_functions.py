@@ -1,3 +1,5 @@
+import pandas as pd 
+
 def create_category_dictionary(rows, categories, full_table = False):
     # creating a dictionary where the key is the category and the values are the indicators of interest. 
     categories_indicator = {cat: ['player_name'] for cat in categories}
@@ -28,3 +30,16 @@ def load_reference_table(cursor):
     for r in raw_rows:
         rows.append({"indicator": r[0], "parity": r[1], "column_name": r[2], "topic": r[3], "efficiency": r[4], 'in_chart': r[6], "is_ratio": r[10]})
     return rows
+
+def fetch_coefficients_data(conn, players):
+
+    placeholders = ",".join("?" * len(players))
+
+    query = f"""
+    SELECT *
+    FROM coefficients
+    WHERE "player_name" IN ({placeholders})
+    """
+
+    df = pd.read_sql_query(query, conn, params=players)
+    return df.drop(['index', 'ranking'], axis = 1).set_index('player_name').T
