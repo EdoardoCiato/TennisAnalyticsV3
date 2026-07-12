@@ -4,6 +4,7 @@ from src.processing.metric_scaling import min_max_scaling, compute_delta, apply_
 from src.export.excel_exporter import export_tables_by_category
 from src.helpers.helper_functions import create_category_dictionary
 from src.helpers.helper_functions import load_reference_table
+from src.helpers.helper_functions import fetch_coefficients_data
 
 def table_exists(cur, name):
     # function for sanity check to check that all the needed tables exist. 
@@ -51,19 +52,6 @@ def delta_col_and_sorting( df, parity_dict, cursor, players ):
 
     return df_scaled, most_relevant_indicators
 
-def fetch_coefficients_data(conn, players):
-
-    placeholders = ",".join("?" * len(players))
-
-    query = f"""
-    SELECT *
-    FROM coefficients
-    WHERE "player_name" IN ({placeholders})
-    """
-
-    df = pd.read_sql_query(query, conn, params=players)
-    return df.drop(['index', 'ranking'], axis = 1).set_index('player_name').T
-
 def main():
     conn = sqlite3.connect('data/db/tennis_abstract_new_version_merged_testing.db')
     cursor = conn.cursor()
@@ -78,7 +66,7 @@ def main():
     rows = (load_reference_table(cursor))
 
     categories_label = ['Serve', 'Return', 'Rally', 'Attitude', 'Tactics', 'Efficiency']
-    players = [ 'GabrielDiallo', 'LorenzoSonego']
+    players = [ 'TaylorFritz', 'LorenzoSonego']
     player1 = players[1]
     player2 = players[0]
 

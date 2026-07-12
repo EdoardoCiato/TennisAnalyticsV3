@@ -198,7 +198,7 @@ def render_court(img:np.ndarray, data: dict, player: str, gg: Gradient, zones: d
 def main():
     gg = Gradient(gradient_start=START_COLOR, gradient_end=END_COLOR, opacity=1.0)
     conn = sqlite3.connect('data/db/tennis_abstract_new_version_merged_testing.db')
-    players = ['GabrielDiallo','LorenzoSonego']
+    players = ['TaylorFritz','LorenzoSonego']
     img = mpimg.imread(IMAGE_PATH)
     visualizations = [
         ("serve_direction", SERVE_ZONES),
