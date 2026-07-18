@@ -2,8 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from src.helpers.helper_functions import fetch_coefficients_data
 import sqlite3
+import os 
 
-def radar_chart(df, player1, player2, categories, output_path=None):
+# TODO: make colors customizable 
+
+def radar_chart(df, player1, player2, categories):
     # Extract values in the same order as categories
 
     # iloc takes the first row from the df, to list because otherwise it a pandas series
@@ -34,15 +37,14 @@ def radar_chart(df, player1, player2, categories, output_path=None):
     ax.set_yticklabels([])
     ax.grid(color="grey", alpha=0.25, linewidth=1)
     radius = [0, 20, 40, 60, 80, 100]
+    # drawing lines along the angles 
     for a in angles:
         ang = [a] * len(radius)
         ax.plot(ang, radius , linewidth=1.5, color='lightgrey', zorder=1)
+    # Connecting the points with the same radius
     for r in radius:
         rad = [r] * len(angles)
         ax.plot(angles, rad , linewidth=1.5, color='lightgrey', zorder=1 )
-
-
-
 
     # Labels
     # We exclude the last element because we included just to close the Polygon. 
@@ -63,17 +65,17 @@ def radar_chart(df, player1, player2, categories, output_path=None):
     # Clean frame
     ax.spines["polar"].set_visible(False)
     ax.grid(False)
-    
 
-    if output_path:
-        plt.savefig(output_path, dpi=300, bbox_inches="tight")
-        plt.close(fig)
-    else:
-        plt.show()
-
+    output_path = f"outputs/chart/{player1}_{player2}_coefficient_chart.png"
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    print(os.path.abspath(output_path))
+    return f"/chart/{player1}_{player2}_coefficient_chart.png"
 
 players = [ "GabrielDiallo", 'LorenzoSonego']
+player1 = players[1]
+player2 = players[0]
+
 conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
 categories = ["Serve", "Efficiency", "Attitude", "Rally", "Return"]
 coefficients_df = fetch_coefficients_data(conn, players).T.reset_index()
-radar_chart(coefficients_df, "LorenzoSonego", "GabrielDiallo", categories, "radar.png")
+radar_chart(coefficients_df, "LorenzoSonego", "GabrielDiallo", categories)

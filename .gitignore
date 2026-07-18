@@ -2,9 +2,7 @@
 .DS_Store
 
 # Tennis Analytics outputs
-outputs/excel/
-outputs/html/
-outputs/court_vision
+*outputs
 
 # Temporary Excel files
 ~$*.xlsx
