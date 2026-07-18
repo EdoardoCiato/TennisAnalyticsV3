@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="it">
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Technics - {{player1.last_name}} vs {{player2.last_name}}
+  </title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+   *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#F0EBE3;padding:28px;display:flex;justify-content:center}.page{width:1100px;background:#F5F0E8;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.14)}
+  </style>
+ </head>
+ <body>
+  <div class="page">
+   <div style="background:#1A3A6C;padding:20px 40px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+     <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#8AB4E8;font-weight:600">
+      Analisi Tecnica - {{player1.last_name}} vs {{player2.last_name}}
+     </div>
+     <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;color:#fff;line-height:1">
+      OVERVIEW
+     </div>
+     <div style="font-size:12px;color:#6A9BC8;margin-top:4px">
+      Serve - Return - Rally
+     </div>
+    </div>
+    <div style="display:flex;gap:20px">
+     <div style="display:flex;align-items:center;gap:8px;color:#fff;font-size:13px;font-weight:700">
+      <span style="width:12px;height:12px;border-radius:50%;background:#4FC3F7;display:inline-block">
+      </span>
+      {{player1.name}}
+     </div>
+     <div style="display:flex;align-items:center;gap:8px;color:#fff;font-size:13px;font-weight:700">
+      <span style="width:12px;height:12px;border-radius:50%;background:#43A047;display:inline-block">
+      </span>
+      {{player2.name}}
+     </div>
+    </div>
+   </div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;background:#fff;margin:18px;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07)">
+    <div style="padding:28px 24px;display:flex;flex-direction:column;gap:16px;border-right:1px solid #E8E0D5">
+     <div style="font-size:13px;font-weight:600;color:#555;text-align:center">
+      Scorecard Tecnica
+     </div>
+     <div style="display:flex;justify-content:center">
+      <div style="width:100%;max-width:430px">
+       <img src="{{ scorecard.image_data or '' }}" style="width:100%;display:block"/>
+      </div>
+     </div>
+     <div style="display:flex;justify-content:center;gap:20px">
+      <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#444;font-weight:600">
+       <span style="width:10px;height:10px;border-radius:50%;background:#4FC3F7;display:inline-block">
+       </span>
+       {{player1.last_name}}
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#444;font-weight:600">
+       <span style="width:10px;height:10px;border-radius:50%;background:#43A047;display:inline-block">
+       </span>
+       {{player2.last_name}}
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#444;font-weight:600">
+       <span style="width:10px;height:10px;border-radius:50%;background:#D32F2F;display:inline-block">
+       </span>
+       ATP avg
+      </div>
+     </div>
+     <div style="font-size:9px;color:#aaa;text-align:center;font-style:italic">
+      Indicatori chiave - rank percentile 0-100
+     </div>
+     <div style="background:#fff;border-radius:12px;padding:16px 18px;border-left:4px solid #1D7A55">
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#1D7A55;font-weight:700;margin-bottom:10px">
+       Note Tecniche - {{player1.last_name}}
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px">
+       <span style="width:6px;height:6px;border-radius:50%;background:#4FC3F7;flex-shrink:0;margin-top:5px;display:inline-block">
+       </span>
+       <span style="font-size:11px;color:#444;line-height:1.6">
+        {{ comments.analysis1 or 'N/A' }}
+       </span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px">
+       <span style="width:6px;height:6px;border-radius:50%;background:#4FC3F7;flex-shrink:0;margin-top:5px;display:inline-block">
+       </span>
+       <span style="font-size:11px;color:#444;line-height:1.6">
+        {{ comments.analysis2 or 'N/A' }}
+       </span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px">
+       <span style="width:6px;height:6px;border-radius:50%;background:#4FC3F7;flex-shrink:0;margin-top:5px;display:inline-block">
+       </span>
+       <span style="font-size:11px;color:#444;line-height:1.6">
+        {{ comments.analysis3 or 'N/A' }}
+       </span>
+      </div>
+     </div>
+    </div>
+    <div style="padding:24px 24px;display:flex;flex-direction:column;gap:16px;justify-content:center">
+     <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+      <div style="background:#1A3A6C;padding:12px 18px;display:flex;justify-content:space-between;align-items:center">
+       <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#fff">
+        SERVE
+       </span>
+       <div style="display:flex;gap:10px">
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.9);font-weight:600">
+         <span style="width:8px;height:8px;border-radius:50%;background:#4FC3F7;display:inline-block">
+         </span>
+         {{player1.last_name}}
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.9);font-weight:600">
+         <span style="width:8px;height:8px;border-radius:50%;background:#43A047;display:inline-block">
+         </span>
+         {{player2.last_name}}
+        </span>
+       </div>
+      </div>
+      <div style="padding:0 18px">
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ serve.metric1_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.serve_metric1 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.serve_metric1_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.serve_metric1_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.serve_metric1_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.serve_metric1_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.serve_metric1_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.serve_metric1_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.serve_metric1_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.serve_metric1_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#4FC3F7">
+          {{ differences.serve_metric1_player_name or 'N/A' }} {{ differences.serve_metric1_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ serve.metric2_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.serve_metric2 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.serve_metric2_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.serve_metric2_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.serve_metric2_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.serve_metric2_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.serve_metric2_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.serve_metric2_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.serve_metric2_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.serve_metric2_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#4FC3F7">
+          {{ differences.serve_metric2_player_name or 'N/A' }} {{ differences.serve_metric2_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ serve.metric3_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.serve_metric3 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.serve_metric3_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.serve_metric3_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.serve_metric3_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.serve_metric3_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.serve_metric3_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.serve_metric3_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.serve_metric3_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.serve_metric3_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#4FC3F7">
+          {{ differences.serve_metric3_player_name or 'N/A' }} {{ differences.serve_metric3_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+      <div style="background:#1D7A55;padding:12px 18px;display:flex;justify-content:space-between;align-items:center">
+       <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#fff">
+        RETURN
+       </span>
+       <div style="display:flex;gap:10px">
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.9);font-weight:600">
+         <span style="width:8px;height:8px;border-radius:50%;background:#4FC3F7;display:inline-block">
+         </span>
+         {{player1.last_name}}
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.9);font-weight:600">
+         <span style="width:8px;height:8px;border-radius:50%;background:#43A047;display:inline-block">
+         </span>
+         {{player2.last_name}}
+        </span>
+       </div>
+      </div>
+      <div style="padding:0 18px">
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ return.metric1_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.return_metric1 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.return_metric1_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.return_metric1_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.return_metric1_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.return_metric1_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.return_metric1_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.return_metric1_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.return_metric1_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.return_metric1_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#43A047">
+          {{ differences.return_metric1_player_name or 'N/A' }} {{ differences.return_metric1_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ return.metric2_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.return_metric2 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.return_metric2_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.return_metric2_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.return_metric2_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.return_metric2_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.return_metric2_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.return_metric2_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.return_metric2_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.return_metric2_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#4FC3F7">
+          {{ differences.return_metric2_player_name or 'N/A' }} {{ differences.return_metric2_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ return.metric3_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.return_metric3 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.return_metric3_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.return_metric3_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.return_metric3_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.return_metric3_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.return_metric3_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.return_metric3_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.return_metric3_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.return_metric3_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#4FC3F7">
+          {{ differences.return_metric3_player_name or 'N/A' }} {{ differences.return_metric3_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+      <div style="background:#7B3FA0;padding:12px 18px;display:flex;justify-content:space-between;align-items:center">
+       <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#fff">
+        RALLY
+       </span>
+       <div style="display:flex;gap:10px">
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.9);font-weight:600">
+         <span style="width:8px;height:8px;border-radius:50%;background:#4FC3F7;display:inline-block">
+         </span>
+         {{player1.last_name}}
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.9);font-weight:600">
+         <span style="width:8px;height:8px;border-radius:50%;background:#43A047;display:inline-block">
+         </span>
+         {{player2.last_name}}
+        </span>
+       </div>
+      </div>
+      <div style="padding:0 18px">
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ rally.metric1_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.rally_metric1 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.rally_metric1_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.rally_metric1_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.rally_metric1_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.rally_metric1_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.rally_metric1_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.rally_metric1_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.rally_metric1_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.rally_metric1_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#4FC3F7">
+          {{ differences.rally_metric1_player_name or 'N/A' }} {{ differences.rally_metric1_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ rally.metric2_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.rally_metric2 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.rally_metric2_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.rally_metric2_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.rally_metric2_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.rally_metric2_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.rally_metric2_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.rally_metric2_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.rally_metric2_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.rally_metric2_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#4FC3F7">
+          {{ differences.rally_metric2_player_name or 'N/A' }} {{ differences.rally_metric2_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+       <div style="padding:14px 0;border-bottom:1px solid #F0EBE3">
+        <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+         <span style="font-size:12px;font-weight:600;color:#333">
+          {{ rally.metric3_name or 'N/A' }}
+         </span>
+         <span style="font-size:11px;font-weight:700;color:#D32F2F;background:#FFEBEE;padding:2px 8px;border-radius:10px;border:1px solid #FFCDD2">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D32F2F;margin-right:5px;vertical-align:middle">
+          </span>
+          ATP: {{ atp.rally_metric3 or 'N/A' }}
+         </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+         <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+          <div style="width:{{ player1.rally_metric3_width or 0 }}%;height:100%;background:#4FC3F7;border-radius:5px">
+          </div>
+          <div style="position:absolute;left:{{ atp.rally_metric3_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+          </div>
+         </div>
+         <span style="font-size:13px;font-weight:700;color:#4FC3F7;width:54px;flex-shrink:0;text-align:right">
+          {{ player1.rally_metric3_value or 'N/A' }}
+         </span>
+        </div>
+        <div style="margin-top:6px">
+         <div style="display:flex;align-items:center;gap:10px">
+          <div style="position:relative;flex:1;height:10px;background:#EDE8E0;border-radius:5px">
+           <div style="width:{{ player2.rally_metric3_width or 0 }}%;height:100%;background:#43A047;border-radius:5px">
+           </div>
+           <div style="position:absolute;left:{{ atp.rally_metric3_marker or 0 }}%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:#D32F2F;border:2px solid #fff;box-shadow:0 0 0 1.5px #D32F2F;z-index:3">
+           </div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:#43A047;width:54px;flex-shrink:0;text-align:right">
+           {{ player2.rally_metric3_value or 'N/A' }}
+          </span>
+         </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:3px">
+         <span style="font-size:10px;color:#4FC3F7">
+          pct {{ player1.rally_metric3_pct or 'N/A' }}
+         </span>
+         <span style="font-size:10px;color:#43A047">
+          pct {{ player2.rally_metric3_pct or 'N/A' }}
+         </span>
+        </div>
+        <div style="text-align:right;margin-top:5px;font-size:12px">
+         <b style="color:#4FC3F7">
+          {{ differences.rally_metric3_player_name or 'N/A' }} {{ differences.rally_metric3_value or 'N/A' }}
+         </b>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+ </body>
+</html>
