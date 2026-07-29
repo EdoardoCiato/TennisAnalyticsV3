@@ -209,5 +209,7 @@ def main():
         data = pull_data(players, indicators, conn).to_dict(orient='index')
         for pl in players:
             render_court(img, data, pl, gg, zone, zone_name)
-   
-main()
+
+
+if __name__ == '__main__':
+    main()

@@ -2,46 +2,49 @@ from __future__ import annotations
 import sqlite3
 import numpy as np
 import pandas as pd
-from src.helpers.helper_functions import create_category_dictionary
-from src.helpers.helper_functions import load_reference_table
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-
+from src.helpers.helper_functions import create_category_dictionary
+from src.helpers.helper_functions import load_reference_table
 
 DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
 
 # TODO: upload table to sql. 
 # TODO: Correlation matrix --> pick only relevant variables. 
 
-def correlation_analysis(df, indicators, title):
-    corr = df[indicators].corr()
-    upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
-    to_drop = [column for column in upper.columns if any(upper[column] > 0.80)]
+# def correlation_analysis(df, indicators, title):
+#     corr = df[indicators].corr()
+#     print(corr)
+#     upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
+#     to_drop = [column for column in upper.columns if any(upper[column] > 0.80)]
 
-    corr.drop(to_drop, axis=1, inplace=True)
-    indicators = corr.columns
+#     corr.drop(to_drop, axis=1, inplace=True)
+#     indicators = corr.columns
 
-    return indicators
+#     #
 
-    fig, ax = plt.subplots(figsize=(len(indicators) * 1.2, len(indicators)))
+#     fig, ax = plt.subplots(figsize=(len(indicators) * 1.2, len(indicators)))
     
-    sns.heatmap(
-        corr,
-        annot=True,
-        cmap='coolwarm',
-        fmt='.2f',
-        vmin=-1, vmax=1,          # fix the color scale
-        linewidths=0.5,           # grid lines for readability
-        ax=ax
-    )
+#     sns.heatmap(
+#         corr,
+#         annot=True,
+#         cmap='coolwarm',
+#         fmt='.2f',
+#         vmin=-1, vmax=1,          # fix the color scale
+#         linewidths=0.5,           # grid lines for readability
+#         ax=ax
+#     )
     
-    ax.set_title(title, fontsize=14, pad=12)
-    plt.xticks(rotation=45, ha='right')
-    plt.tight_layout()
-    plt.show()
+#     ax.set_title(title, fontsize=14, pad=12)
+#     plt.xticks(rotation=45, ha='right')
+#     plt.tight_layout()
+#     plt.show()
 
 
 def fetch_general_table_data(conn):
@@ -76,15 +79,18 @@ def main ():
     dict_categories = create_category_dictionary(rows, categories_label, True)
     # Create the final df. 
     coefficients_df = full_df.copy()[['ranking', 'player_name']]
+    min_max_scaling(cursor,)
     for label, indicators in dict_categories.items():
         # Start from 1 because each group contains player_name
         indicators.remove('player_name')
+        print(indicators)
         # Index = average of every quantile for that specific category.) 
         coefficients_df[label] = percentiles_df[indicators].mean(axis=1)
 
     coefficients_df['global'] = coefficients_df[categories_label].mean(axis=1)
-    print(coefficients_df[coefficients_df['player_name'] == "GabrielDiallo"])
-    print(coefficients_df.sort_values('global', ascending=False))
+    # print(coefficients_df[coefficients_df['player_name'] == "GabrielDiallo"])
+    # print(coefficients_df.sort_values('global', ascending=False))
+
         
     coefficients_df.to_sql(name='coefficients', con=conn, if_exists='replace')
     

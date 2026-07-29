@@ -1,7 +1,9 @@
 import pandas as pd
 import sqlite3
 
-conn = sqlite3.connect('data/db/tennis_abstract_new_version_merged_testing.db')
+DB_PATH = 'data/db/tennis_abstract_new_version_merged_testing.db'
+
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
 cursor.execute(''' DROP TABLE "reference_table"''')

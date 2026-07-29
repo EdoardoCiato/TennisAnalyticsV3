@@ -72,9 +72,6 @@ def ensure_index_table(conn: sqlite3.Connection) -> None:
     )
     conn.commit()
 
-# =========================
-# SELENIUM
-# =========================
 def make_driver(headless: bool = True) -> webdriver.Chrome:
     options = Options()
     if headless:
@@ -102,9 +99,6 @@ def load_page_html(driver: webdriver.Chrome, url: str) -> Tuple[str, str]:
     title = driver.title
     return html, title
 
-# =========================
-# TABLE EXTRACTION
-# =========================
 def extract_tables_from_html(html: str) -> List[Tuple[str, pd.DataFrame]]:
     soup = BeautifulSoup(html, "html.parser")
     tables = soup.find_all("table")
@@ -135,9 +129,7 @@ def extract_tables_from_html(html: str) -> List[Tuple[str, pd.DataFrame]]:
 
     return out
 
-# =========================
-# MAIN SCRAPER
-# =========================
+
 def scrape_players_to_sqlite(
     players: Iterable[str],
     db_path: str = DB_PATH,
@@ -210,9 +202,6 @@ def scrape_players_to_sqlite(
     print(f"\n✅ Completato. DB SQLite: {db_path}")
     print("Missing players:", missing_players)
 
-# =========================
-# RUN HERE
-# =========================
 if __name__ == "__main__":
     
     players = []

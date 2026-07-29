@@ -2,7 +2,7 @@ import pandas as pd
 
 def create_category_dictionary(rows, categories, full_table = False):
     # creating a dictionary where the key is the category and the values are the indicators of interest. 
-    categories_indicator = {cat: ['player_name'] for cat in categories}
+    categories_indicator = {cat: [] for cat in categories}
     # rows is the a list of dictionaries with all the info about the indicators
     for row in rows:
         topic = row['topic']
@@ -21,16 +21,6 @@ def create_category_dictionary(rows, categories, full_table = False):
 
     return categories_indicator
 
-def load_reference_table(cursor):
-    # selecting all the indicators from the reference tables
-    cursor.execute('SELECT * FROM reference_table')
-    raw_rows = cursor.fetchall()
-    rows = []
-    # for each indicator, creating a dict with the useful information
-    for r in raw_rows:
-        rows.append({"indicator": r[0], "parity": r[1], "column_name": r[2], "topic": r[3], "efficiency": r[4], 'in_chart': r[6], "is_ratio": r[10]})
-    return rows
-
 def fetch_coefficients_data(conn, players):
 
     placeholders = ",".join("?" * len(players))
@@ -43,3 +33,9 @@ def fetch_coefficients_data(conn, players):
 
     df = pd.read_sql_query(query, conn, params=players)
     return df.drop(['index', 'ranking'], axis = 1).set_index('player_name').T
+
+
+def table_exists(cur, name):
+    # function for sanity check to check that all the needed tables exist. 
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (name,))
+    return cur.fetchone() is not None

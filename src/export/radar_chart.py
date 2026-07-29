@@ -6,7 +6,7 @@ import os
 
 # TODO: make colors customizable 
 
-def radar_chart(df, player1, player2, categories):
+def radar_chart(df, player1, player2, categories, analysis = 'coefficient'):
     # Extract values in the same order as categories
 
     # iloc takes the first row from the df, to list because otherwise it a pandas series
@@ -66,16 +66,22 @@ def radar_chart(df, player1, player2, categories):
     ax.spines["polar"].set_visible(False)
     ax.grid(False)
 
-    output_path = f"outputs/chart/{player1}_{player2}_coefficient_chart.png"
+    output_path = f"outputs/chart/{player1}_{player2}_{analysis}_chart.png"
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
     print(os.path.abspath(output_path))
-    return f"/chart/{player1}_{player2}_coefficient_chart.png"
+    return f"/chart/{player1}_{player2}_{analysis}_chart.png"
 
-players = [ "GabrielDiallo", 'LorenzoSonego']
-player1 = players[1]
-player2 = players[0]
 
-conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
-categories = ["Serve", "Efficiency", "Attitude", "Rally", "Return"]
-coefficients_df = fetch_coefficients_data(conn, players).T.reset_index()
-radar_chart(coefficients_df, "LorenzoSonego", "GabrielDiallo", categories)
+def main():
+    players = [ "GabrielDiallo", 'LorenzoSonego']
+    player1 = players[1]
+    player2 = players[0]
+
+    conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
+    categories = ["Serve", "Efficiency", "Attitude", "Rally", "Return"]
+    coefficients_df = fetch_coefficients_data(conn, players).T.reset_index()
+    radar_chart(coefficients_df, "LorenzoSonego", "GabrielDiallo", categories)
+
+
+if __name__ == '__main__':
+    main()

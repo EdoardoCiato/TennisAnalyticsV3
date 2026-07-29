@@ -5,6 +5,13 @@ import re
 import statistics
 import copy
 import pandas as pd
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from src.helpers.loaders import load_reference_table
+
+
 
 CONVERSION_RATE_MPH_KMH = 1.60934
 
@@ -19,6 +26,8 @@ INDICATOR_TO_COLS = {
     "deep":         ["shallow", "deep", "very_deep"],
     "very_deep":    ["shallow", "deep", "very_deep"],
 }
+
+DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
 
 def create_general_table(cursor: sqlite3.Cursor, conn: sqlite3.Connection) -> list[dict]:
 
@@ -49,8 +58,7 @@ def create_general_table(cursor: sqlite3.Cursor, conn: sqlite3.Connection) -> li
     """
 
      # Retrieve all indicator definitions from the reference table.
-    cursor.execute('SELECT * from "reference_table"')
-    raw_rows = cursor.fetchall()
+    rows = load_reference_table(cursor) 
     sql_create_table = f'''
         CREATE TABLE IF NOT EXISTS "general" (
         "ranking" NUMERIC,
@@ -58,11 +66,11 @@ def create_general_table(cursor: sqlite3.Cursor, conn: sqlite3.Connection) -> li
         '''
     # rows contains all the information related to the indicators
     indicator_metadata = []
-    for r in raw_rows:
+    for r in rows:
         # Clean the indicator name so it can be safely used
         # as a SQL column name.
         column_name = (
-            str(r[2])
+            str(r["column_name"])
             .strip()
             .replace('(', '')
             .replace(')', '')
@@ -71,17 +79,11 @@ def create_general_table(cursor: sqlite3.Cursor, conn: sqlite3.Connection) -> li
         )
         # we add all the indicators in reference table to the general table we are creating
         sql_create_table += f'"{column_name}" NUMERIC,\n'
-
-        indicator_metadata.append({ "indicator": r[0],
-                                    "column_name": r[2],
-                                    "reference_group": r[7],
-                                    "filter_date": r[8],
-                                    "js": r[9]})
         
     sql_create_table += '"matches_analyzed" NUMERIC)'
     cursor.execute(sql_create_table)
     conn.commit()
-    return indicator_metadata
+    return rows
 
 def fetch_indicator_value(indicator: str, player: str, reference_group: str, filter_date: str, cursor: sqlite3.Cursor) -> float | str :  
         """
@@ -343,29 +345,6 @@ def extract_matches_analyzed(cursor: sqlite3.Cursor, player: str) -> int | None 
     # The group function gives the output of the Regex search. 
     return int(match.group()) if match else None
 
-def insert_row_into_general_table(player_data: dict, cursor: sqlite3.Cursor) -> None:
-    """
-    Insert a row into the general table.
-
-    Parameters
-    ----------
-    player_data : dict
-        Dictionary containing the values to be inserted. The values
-        are inserted following the dictionary insertion order.
-    cursor : sqlite3.Cursor
-        Database cursor used to execute the INSERT statement.
-    """
-    # Create an array with all the values from the dictionary keeping the same order. 
-    values = list(player_data.values())
-
-    placeholders = ",".join(['?']*len(values))
-    # The dictionary keys must follow the same order as the
-    # columns defined in the general table schema.
-    query = f'''
-        INSERT INTO general VALUES ({placeholders})
-    '''
-    cursor.execute(query, values)
-
 def adjust_range(position: int, i:int) -> tuple[int, int]:
     """
     Compute a ranking range centered around a given position while
@@ -508,7 +487,7 @@ def handling_NA( player: str, indicator: str, players:list, raw_player_table: di
 
 def main():
     # Connect to the db. 
-    conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     # Drop the already existing table. 
     cursor.execute('''
@@ -517,17 +496,19 @@ def main():
     # Create the new table with the columns from the reference table and 
     # retrieve the metadata for each indicator. 
     indicator_metadata = create_general_table(cursor, conn)
+    column_names = [indicator['column_name'] for indicator in indicator_metadata]
+    column_names.append('matches_analyzed')
+    column_names.insert(0, 'ranking')
     # Load players in ranking order.
     players = []
     with open("data/raw/top200.txt") as file:
             for line in file:
                 players.append(line.strip())
-    PLAYERS  = players
     missing_data = {}
     missing_info = []
     raw_player_table = {}
     ranking = 1
-    for player in PLAYERS:
+    for player in players:
         missing_info = []
         player = player.strip()
         # Build one row per player, using indicator names as keys.
@@ -567,19 +548,19 @@ def main():
         # Once all the information for the player is available, add it to the raw table. 
         raw_player_table[player] = player_data
     # creating a copy to leave the original untouched
+
     imputed_player_table = copy.deepcopy(raw_player_table)
     # Imputed flags stores what player-indicator combo have been imputed for future reference. 
     imputed_flags = {}
     # For loop to impute the missing values. 
     for pl, indicators in missing_data.items():
         for ind in indicators:
-            imputed_player_table[pl][ind] = handling_NA( pl, ind, PLAYERS, raw_player_table)
+            imputed_player_table[pl][ind] = handling_NA( pl, ind, players, raw_player_table)
             imputed_flags[(pl, ind)] = 1
     # The imputed table is the final version inserted into the database.
-
-    for row in imputed_player_table.values():
-        insert_row_into_general_table(row, cursor)
-    
+    general_df = pd.DataFrame.from_dict(imputed_player_table, orient='index').set_index('player_name')
+    general_df.columns = column_names
+    general_df.to_sql(name = 'general', con=conn, if_exists = 'replace')
     # Commit all the changes to the DB and close the connection
     conn.commit()
     conn.close()
