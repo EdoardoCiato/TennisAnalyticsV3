@@ -6,11 +6,18 @@ import sqlite3
 from gradpyent.gradient import Gradient
 from matplotlib.axes import Axes
 import numpy as np
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from src.config import DB_PATH, OUTPUT_COURT_VISION_DIR
 
 START_COLOR = '#F8FBFF'
 END_COLOR = '#001B44'  
 
 IMAGE_PATH = 'data/templates/image.png'
+PLAYERS = ['TallonGriekspoor','LorenzoSonego']
+
 SERVE_ZONES = {
     "deuce_T": {
         "label": "T",
@@ -197,8 +204,7 @@ def render_court(img:np.ndarray, data: dict, player: str, gg: Gradient, zones: d
 
 def main():
     gg = Gradient(gradient_start=START_COLOR, gradient_end=END_COLOR, opacity=1.0)
-    conn = sqlite3.connect('data/db/tennis_abstract_new_version_merged_testing.db')
-    players = ['TaylorFritz','LorenzoSonego']
+    conn = sqlite3.connect(DB_PATH)
     img = mpimg.imread(IMAGE_PATH)
     visualizations = [
         ("serve_direction", SERVE_ZONES),
@@ -206,8 +212,8 @@ def main():
 ] 
     for zone_name, zone in visualizations:
         indicators = [z['column'] for z in zone.values()]
-        data = pull_data(players, indicators, conn).to_dict(orient='index')
-        for pl in players:
+        data = pull_data(PLAYERS, indicators, conn).to_dict(orient='index')
+        for pl in PLAYERS:
             render_court(img, data, pl, gg, zone, zone_name)
 
 

@@ -1,5 +1,10 @@
 import pandas as pd
+import sqlite3
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from src.config import DB_PATH
 def load_table(conn, table_name, players=None):
     allowed_tables = {'general', 'min_max_scaled', 'global_averages'}
     if table_name not in allowed_tables:
@@ -15,16 +20,18 @@ def load_table(conn, table_name, players=None):
 
     return df.set_index('player_name')
 
-def load_reference_table(cursor):
+def load_reference_table():
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
     # selecting all the indicators from the reference tables
-    cursor.execute('SELECT * FROM reference_table')
-    raw_rows = cursor.fetchall()
-    rows = []
-    # for each indicator, creating a dict with the useful information
-    for r in raw_rows:
-        rows.append({"indicator": r[0], "parity": r[1], 
-                     "column_name": r[2], "topic": r[3],
-                       "efficiency": r[4], 'in_chart': r[6], 
-                       "reference_group": r[7], "filter_date": r[8],
-                       "js": r[9], "is_ratio": r[10]})
-    return rows
+        cursor.execute('SELECT * FROM reference_table')
+        raw_rows = cursor.fetchall()
+        rows = []
+        # for each indicator, creating a dict with the useful information
+        for r in raw_rows:
+            rows.append({"indicator": r[0], "parity": r[1], 
+                        "column_name": r[2], "topic": r[3],
+                        "efficiency": r[4], 'in_chart': r[6], 
+                        "reference_group": r[7], "filter_date": r[8],
+                        "js": r[9], "is_ratio": r[10]})
+        return rows

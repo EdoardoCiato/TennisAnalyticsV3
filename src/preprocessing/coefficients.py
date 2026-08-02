@@ -1,19 +1,13 @@
 from __future__ import annotations
-import sqlite3
-import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.helpers.helper_functions import create_category_dictionary
-from src.helpers.helper_functions import load_reference_table
-
-DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
+from src.helpers.loaders import load_reference_table
+from src.data_access import upload_table, get_general_table
 
 # TODO: upload table to sql. 
 # TODO: Correlation matrix --> pick only relevant variables. 
@@ -46,24 +40,12 @@ DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
 #     plt.tight_layout()
 #     plt.show()
 
-
-def fetch_general_table_data(conn):
-
-    df = pd.read_sql_query('SELECT * FROM general', conn)
-    return df
-
-
 def main ():
-    conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    # Obtain the name of the columns in general. 
-    cursor.execute("PRAGMA table_info(general)")
-    full_df = fetch_general_table_data(conn)
+    full_df = get_general_table()
     # Df containing only variables to be analyzed.
     variables_df = full_df.copy().drop(['ranking', 'player_name', 'matches_analyzed'], axis = 1)
     # Load reference table information to retrieve indicator metadata.
-    rows = load_reference_table(cursor)
+    rows = load_reference_table()
     # List containing only the indicator with negative parity ( the lower the better).
     negative_parity_cols = [r['column_name'] for r in rows if  r['parity'] == -1 ]
     # Find the positive parity columns by exclusion. 
@@ -79,21 +61,12 @@ def main ():
     dict_categories = create_category_dictionary(rows, categories_label, True)
     # Create the final df. 
     coefficients_df = full_df.copy()[['ranking', 'player_name']]
-    min_max_scaling(cursor,)
     for label, indicators in dict_categories.items():
         # Start from 1 because each group contains player_name
-        indicators.remove('player_name')
-        print(indicators)
         # Index = average of every quantile for that specific category.) 
         coefficients_df[label] = percentiles_df[indicators].mean(axis=1)
 
     coefficients_df['global'] = coefficients_df[categories_label].mean(axis=1)
-    # print(coefficients_df[coefficients_df['player_name'] == "GabrielDiallo"])
-    # print(coefficients_df.sort_values('global', ascending=False))
-
-        
-    coefficients_df.to_sql(name='coefficients', con=conn, if_exists='replace')
-    
-    conn.close()
+    upload_table(coefficients_df, 'coefficients')
 
 main()

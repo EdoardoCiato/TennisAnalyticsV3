@@ -4,6 +4,7 @@ import pandas as pd
 import sqlite3
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from src.export.radar_chart import radar_chart
+from src.config import DB_PATH
 
 RADAR_INDICATORS = [
     'Serve Games hold %','Break Pts Saved',
@@ -16,7 +17,7 @@ PLAYERS = [
 ]
 
 def main():
-    conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     df = pd.read_sql_query('Select * from GENERAL ', conn)
     full_df = df.set_index('player_name')

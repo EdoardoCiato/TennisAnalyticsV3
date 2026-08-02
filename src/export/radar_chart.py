@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from src.helpers.helper_functions import fetch_coefficients_data
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from src.config import DB_PATH
 import sqlite3
 import os 
 
@@ -77,11 +80,8 @@ def main():
     player1 = players[1]
     player2 = players[0]
 
-    conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
+    conn = sqlite3.connect(DB_PATH)
     categories = ["Serve", "Efficiency", "Attitude", "Rally", "Return"]
-    coefficients_df = fetch_coefficients_data(conn, players).T.reset_index()
-    radar_chart(coefficients_df, "LorenzoSonego", "GabrielDiallo", categories)
-
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,12 @@
 import pandas as pd
 import sqlite3
+import sys
+from pathlib import Path
 
-DB_PATH = 'data/db/tennis_abstract_new_version_merged_testing.db'
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from src.config import DB_PATH
+
+# TODO: re-do completely. Find new/smarter way. 
 
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()

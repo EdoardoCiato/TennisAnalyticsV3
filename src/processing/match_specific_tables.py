@@ -8,9 +8,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from src.export.excel_exporter import export_tables_by_category
 from src.helpers.helper_functions import create_category_dictionary, fetch_coefficients_data, table_exists
 from src.helpers.loaders import load_reference_table, load_table
+from src.config import DB_PATH,  OUTPUT_EXCEL_DIR
 
-PLAYERS = [ 'TaylorFritz', 'LorenzoSonego']
-DB_PATH = 'data/db/tennis_abstract_new_version_merged_testing.db'
+PLAYERS = [ 'TallonGriekspoor', 'LorenzoSonego']
 CATEGORIES_LABELS = ['Serve', 'Return', 'Rally', 'Attitude', 'Tactics', 'Efficiency']
 
 # TODO: in pull table values, i hard-cded "player_name" see if there are other soluitons. 
@@ -101,7 +101,7 @@ def main():
             label = tables_configs[0]
             scaled_df, best_indicators = delta_col_and_sorting(df = tables[tables_configs])
             # Remove the ATP average because it's a comparison with the scaled data of the two players. 
-            tables[tables_configs] = scaled_df.drop(['ATP average'], axis = 1)
+            tables[tables_configs] = scaled_df.drop(['ATP Average'], axis = 1)
             indicators_for_visualization[label] = best_indicators
 
     # Add the coefficients table to the excel. 

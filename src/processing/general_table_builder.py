@@ -10,8 +10,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.helpers.loaders import load_reference_table
+from src.config import DB_PATH
 
-
+# TODO: rethink table creation. 
 
 CONVERSION_RATE_MPH_KMH = 1.60934
 
@@ -26,8 +27,6 @@ INDICATOR_TO_COLS = {
     "deep":         ["shallow", "deep", "very_deep"],
     "very_deep":    ["shallow", "deep", "very_deep"],
 }
-
-DB_PATH = "data/db/tennis_abstract_new_version_merged_testing.db"
 
 def create_general_table(cursor: sqlite3.Cursor, conn: sqlite3.Connection) -> list[dict]:
 

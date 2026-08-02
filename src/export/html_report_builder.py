@@ -8,6 +8,7 @@ import re
 from playwright.sync_api import sync_playwright, Playwright
 from src.helpers.helper_functions import fetch_coefficients_data
 from src.export.radar_chart import radar_chart
+from src.config import DB_PATH
 import pandas as pd
 
 # TODO: check that the radar exists before moving forward
@@ -97,7 +98,7 @@ def generate_report(data: dict)-> str:
 
 def main():
     # Create connection. 
-    conn = sqlite3.connect("data/db/tennis_abstract_new_version_merged_testing.db")
+    conn = sqlite3.connect(DB_PATH)
     # fetching info row by row as a dictionary. 
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
