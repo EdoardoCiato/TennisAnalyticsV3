@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="it">
+ <head>
+  <meta charset="utf-8"/>
+  <title>
+   Glossario - {{ player1.name or "-" }} vs {{ player2.name or "-" }}
+  </title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Inter:wght@400;500;600;700&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+  <style>
+   *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#E8E3DB;padding:28px;display:flex;justify-content:center}.page{width:1100px;background:#F5F0E8;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.14)}.mtbl{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)}.mtbl th{color:#fff;padding:10px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700}.mtbl td{padding:9px 12px;font-size:11.5px;color:#333;border-top:1px solid #F0EBE3;vertical-align:top}
+  </style>
+ </head>
+ <body>
+  <div class="page">
+   <div style="background:#4A5568;padding:26px 44px">
+    <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#A0AEC0;font-weight:600;margin-bottom:6px">
+     Analisi Approfondita — {{ player1.name or "-" }} vs {{ player2.name or "-" }}
+    </div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:#fff;line-height:1">
+     DEEP DIVE
+    </div>
+    <div style="font-size:12px;color:#A0AEC0;margin-top:6px">
+     Glossario completo delle metriche
+    </div>
+    <div style="background:rgba(255,255,255,.07);margin-top:16px;padding:14px 18px;border-radius:8px;border-left:3px solid rgba(255,255,255,.2)">
+     <p style="font-size:12px;color:rgba(255,255,255,.85);line-height:1.75">
+      Descrizione completa di tutte le metriche analizzate. Ogni indice è un percentile rank calcolato sul campione ATP top 200: 0 = peggior giocatore, 50 = media, 100 = miglior giocatore.
+     </p>
+    </div>
+   </div>
+   <div style="padding:30px 44px;display:flex;flex-direction:column;gap:0">
+    <div style="background:#fff;border-radius:12px;padding:24px 28px;box-shadow:0 1px 6px rgba(0,0,0,.06);margin-bottom:28px">
+     <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#4A5568;font-weight:700;margin-bottom:14px">
+      Come Leggere gli Indici
+     </div>
+     <p style="font-size:12px;color:#444;line-height:1.8;margin-bottom:10px">
+      Gli indici misurano l'efficacia di un giocatore in ogni area tecnica rispetto al campione top 200 ATP. Il percentile indica dove si colloca il giocatore: 70 significa che fa meglio del 70% del circuito, 50 è la media esatta. Sopra 75 sei tra i migliori, sotto 25 sei in zona critica.
+     </p>
+     <p style="font-size:12px;color:#444;line-height:1.8">
+      Le metriche con andamento inverso (errori, doppi falli) vengono invertite — su tutti gli assi del radar
+      <strong>
+       più è alto, meglio è
+      </strong>
+      . Ogni coefficiente di area è la media dei percentili delle metriche che lo compongono.
+     </p>
+    </div>
+    <div style="margin-bottom:28px">
+     <div style="margin-bottom:6px">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#1A3A6C">
+       SERVE
+      </span>
+      <p style="font-size:11px;color:#666;margin-top:2px">
+       Media dei percentili su 11 metriche di servizio
+      </p>
+     </div>
+     <table class="mtbl">
+      <thead>
+       <tr style="background:#1A3A6C">
+        <th style="width:24%">
+         Metrica
+        </th>
+        <th style="width:34%">
+         Descrizione
+        </th>
+        <th style="color:#FFCDD2;text-align:center;width:10%">
+         ATP AVG
+        </th>
+        <th style="color:#4FC3F7;text-align:center;width:11%">
+         {{ player1.last_name or "-" }}
+        </th>
+        <th style="color:#A5D6A7;text-align:center;width:11%">
+         {{ player2.last_name or "-" }}
+        </th>
+        <th style="width:15%">
+         Nota
+        </th>
+       </tr>
+      </thead>
+      <tbody>
+       {% for metric in metrics.serve %}
+       <tr>
+        <td style="font-weight:600;color:#222">
+         {{ metric.name }}
+        </td>
+        <td style="color:#555">
+         {{ metric.description }}
+        </td>
+        <td style="color:#D32F2F;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px;background:#FFF5F5">
+         {{ metric.atp }}
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player1 }}
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player2 }}
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         -
+        </td>
+       </tr>
+       {% endfor %}
+      </tbody>
+     </table>
+    </div>
+    <div style="margin-bottom:28px">
+     <div style="margin-bottom:6px">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#1D7A55">
+       RETURN
+      </span>
+      <p style="font-size:11px;color:#666;margin-top:2px">
+       Media dei percentili su 8 metriche di risposta
+      </p>
+     </div>
+     <table class="mtbl">
+      <thead>
+       <tr style="background:#1D7A55">
+        <th style="width:24%">
+         Metrica
+        </th>
+        <th style="width:34%">
+         Descrizione
+        </th>
+        <th style="color:#FFCDD2;text-align:center;width:10%">
+         ATP AVG
+        </th>
+        <th style="color:#4FC3F7;text-align:center;width:11%">
+         {{ player1.last_name or "-" }}
+        </th>
+        <th style="color:#A5D6A7;text-align:center;width:11%">
+         {{ player2.last_name or "-" }}
+        </th>
+        <th style="width:15%">
+         Nota
+        </th>
+       </tr>
+      </thead>
+      <tbody>
+       {% for metric in metrics.return %}
+       <tr>
+        <td style="font-weight:600;color:#222">
+         {{ metric.name }}
+        </td>
+        <td style="color:#555">
+         {{ metric.description }}
+        </td>
+        <td style="color:#D32F2F;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px;background:#FFF5F5">
+         {{ metric.atp }}
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player1 }}
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player2 }}
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         -
+        </td>
+       </tr>
+       {% endfor %}
+      </tbody>
+     </table>
+    </div>
+    <div style="margin-bottom:28px">
+     <div style="margin-bottom:6px">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#7B3FA0">
+       RALLY
+      </span>
+      <p style="font-size:11px;color:#666;margin-top:2px">
+       Media dei percentili di 7 metriche di scambio da fondo
+      </p>
+     </div>
+     <table class="mtbl">
+      <thead>
+       <tr style="background:#7B3FA0">
+        <th style="width:24%">
+         Metrica
+        </th>
+        <th style="width:34%">
+         Descrizione
+        </th>
+        <th style="color:#FFCDD2;text-align:center;width:10%">
+         ATP AVG
+        </th>
+        <th style="color:#4FC3F7;text-align:center;width:11%">
+         {{ player1.last_name or "-" }}
+        </th>
+        <th style="color:#A5D6A7;text-align:center;width:11%">
+         {{ player2.last_name or "-" }}
+        </th>
+        <th style="width:15%">
+         Nota
+        </th>
+       </tr>
+      </thead>
+      
+       {% for metric in metrics.rally %}
+       <tr>
+        <td style="font-weight:600;color:#222">
+         {{ metric.name }}
+        </td>
+        <td style="color:#555">
+         {{ metric.description }}
+        </td>
+        <td style="color:#D32F2F;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px;background:#FFF5F5">
+         {{ metric.atp }}
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player1 }}
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player2 }}
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         -
+        </td>
+       </tr>
+       {% endfor %}
+      
+     </table>
+    </div>
+    <div style="margin-bottom:28px">
+     <div style="margin-bottom:6px">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#2D1B5E">
+       ATTITUDE
+      </span>
+      <p style="font-size:11px;color:#666;margin-top:2px">
+       Media dei percentili di 8 metriche mentali e competitive
+      </p>
+     </div>
+     <table class="mtbl">
+      <thead>
+       <tr style="background:#2D1B5E">
+        <th style="width:24%">
+         Metrica
+        </th>
+        <th style="width:34%">
+         Descrizione
+        </th>
+        <th style="color:#FFCDD2;text-align:center;width:10%">
+         ATP AVG
+        </th>
+        <th style="color:#4FC3F7;text-align:center;width:11%">
+         {{ player1.last_name or "-" }}
+        </th>
+        <th style="color:#A5D6A7;text-align:center;width:11%">
+         {{ player2.last_name or "-" }}
+        </th>
+        <th style="width:15%">
+         Nota
+        </th>
+       </tr>
+      </thead>
+      
+       {% for metric in metrics.attitude %}
+       <tr>
+        <td style="font-weight:600;color:#222">
+         {{ metric.name }}
+        </td>
+        <td style="color:#555">
+         {{ metric.description }}
+        </td>
+        <td style="color:#D32F2F;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px;background:#FFF5F5">
+         {{ metric.atp }}
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player1 }}
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player2 }}
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         -
+        </td>
+       </tr>
+       {% endfor %}
+      
+     </table>
+    </div>
+    <div style="margin-bottom:28px">
+     <div style="margin-bottom:6px">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#C05A00">
+       TACTICS
+      </span>
+      <p style="font-size:11px;color:#666;margin-top:2px">
+       Media dei percentili di 5 metriche tattiche
+      </p>
+     </div>
+     <table class="mtbl">
+      <thead>
+       <tr style="background:#C05A00">
+        <th style="width:24%">
+         Metrica
+        </th>
+        <th style="width:34%">
+         Descrizione
+        </th>
+        <th style="color:#4FC3F7;text-align:center;width:11%">
+         {{ player1.last_name or "-" }}
+        </th>
+        <th style="color:#A5D6A7;text-align:center;width:11%">
+         {{ player2.last_name or "-" }}
+        </th>
+        <th style="width:15%">
+         Nota
+        </th>
+       </tr>
+      </thead>
+      <tbody>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Drop Frequency
+        </td>
+        <td style="color:#555">
+         % drop shot giocati
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         2.4
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         2.3
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Neutro — non aggressività
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Net Frequency
+        </td>
+        <td style="color:#555">
+         % punti a rete
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         10.1
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         8.9
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Frequenza salite
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Serve &amp; Volley  Frequency
+        </td>
+        <td style="color:#555">
+         % serve &amp; volley
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         3.2
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         4.7
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Tattica serve &amp; volley
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Forehand Cross court %
+        </td>
+        <td style="color:#555">
+         % dritto in cross
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         33.79
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         30.36
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Direzione dritto
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Backhand Cross court %
+        </td>
+        <td style="color:#555">
+         % rovescio in cross
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         49.94
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         58.77
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Direzione rovescio
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Forehand Down middle %
+        </td>
+        <td style="color:#555">
+         % dritto al centro
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         23.67
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         26.4
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Tattica conservativa
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Backhand Down middle %
+        </td>
+        <td style="color:#555">
+         % rovescio al centro
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         28.71
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         28.95
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Tattica conservativa
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Forehand Down the Line %
+        </td>
+        <td style="color:#555">
+         % dritto lungolinea
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         11.62
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         8.25
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Cambio direzione
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Backhand Down the Line %
+        </td>
+        <td style="color:#555">
+         % rovescio lungolinea
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         21.35
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         12.28
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Cambio direzione
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Forehand inside Out %
+        </td>
+        <td style="color:#555">
+         % dritto inside-out
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         25.96
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         29.37
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Pattern aggressivo Musetti
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Forehand inside In%
+        </td>
+        <td style="color:#555">
+         % dritto inside-in
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         4.95
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         5.61
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Variazione inside-out
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Serve deuce side wide %
+        </td>
+        <td style="color:#555">
+         % servizi deuce wide
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         35.87
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         32.56
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Distribuzione servizio
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Serve deuce side middle %
+        </td>
+        <td style="color:#555">
+         % servizi deuce centrale
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         15.49
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         29.46
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Distribuzione servizio
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Serve deuce side t %
+        </td>
+        <td style="color:#555">
+         % servizi deuce al T
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         48.64
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         37.98
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Distribuzione servizio
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Serve ad side wide %
+        </td>
+        <td style="color:#555">
+         % servizi ad wide
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         50.37
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         53.72
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Distribuzione servizio
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Serve ad side middle %
+        </td>
+        <td style="color:#555">
+         % servizi ad centrale
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         14.46
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         24.79
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Distribuzione servizio
+        </td>
+       </tr>
+       <tr>
+        <td style="font-weight:600;color:#222">
+         Serve ad side t %
+        </td>
+        <td style="color:#555">
+         % servizi ad al T
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         35.17
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         21.49
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         Distribuzione servizio
+        </td>
+       </tr>
+      </tbody>
+     </table>
+     <p style="font-size:11px;color:#666;margin-top:10px;padding:8px 12px;background:#FFF8F0;border-left:3px solid #C05A00;border-radius:0 4px 4px 0">
+      <em>
+       Nota: Drop Frequency e Cross court % classificati come neutri — esclusi dal calcolo del coeff_tactics.
+      </em>
+     </p>
+    </div>
+    <div style="margin-bottom:28px">
+     <div style="margin-bottom:6px">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#005F6B">
+       EFFICIENCY
+      </span>
+      <p style="font-size:11px;color:#666;margin-top:2px">
+       Media dei percentili di 8 metriche di efficacia complessiva
+      </p>
+     </div>
+     <table class="mtbl">
+      <thead>
+       <tr style="background:#005F6B">
+        <th style="width:24%">
+         Metrica
+        </th>
+        <th style="width:34%">
+         Descrizione
+        </th>
+        <th style="color:#FFCDD2;text-align:center;width:10%">
+         ATP AVG
+        </th>
+        <th style="color:#4FC3F7;text-align:center;width:11%">
+         {{ player1.last_name or "-" }}
+        </th>
+        <th style="color:#A5D6A7;text-align:center;width:11%">
+         {{ player2.last_name or "-" }}
+        </th>
+        <th style="width:15%">
+         Nota
+        </th>
+       </tr>
+      </thead>
+      
+       {% for metric in metrics.efficiency %}
+       <tr>
+        <td style="font-weight:600;color:#222">
+         {{ metric.name }}
+        </td>
+        <td style="color:#555">
+         {{ metric.description }}
+        </td>
+        <td style="color:#D32F2F;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px;background:#FFF5F5">
+         {{ metric.atp }}
+        </td>
+        <td style="color:#4FC3F7;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player1 }}
+        </td>
+        <td style="color:#2E7D32;font-weight:700;text-align:center;font-family:'DM Mono',monospace;font-size:11px">
+         {{ metric.player2 }}
+        </td>
+        <td style="font-size:11px;color:#777;font-style:italic">
+         -
+        </td>
+       </tr>
+       {% endfor %}
+      
+     </table>
+    </div>
+   </div>
+  </div>
+ </body>
+</html>
